@@ -220,6 +220,7 @@ class MQTTPublisher:
                         "timestamp": timestamp_str,
                         "quality": "SIM",
                         "domain": tag_meta.get("domain", ""),
+                        "source": "csv_replay_mqtt",
                     }
 
                     self.client.publish(

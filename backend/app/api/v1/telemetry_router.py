@@ -51,3 +51,35 @@ def get_mqtt_tag_history(
     if not telemetry_service or not telemetry_service.mqtt_service:
         return []
     return telemetry_service.mqtt_service.get_tag_history(tag_id, limit)
+
+@router.get("/tags/historical")
+def get_historical_source_tags(
+    telemetry_service: TelemetryService = Depends(get_telemetry_service),
+) -> Dict[str, Any]:
+    """
+    Returns the tags currently published by the Python CSV->MQTT publisher
+    (source = 'csv_replay_mqtt'), i.e. the data pipeline you already had running.
+    """
+    if not telemetry_service or not telemetry_service.mqtt_service:
+        return {}
+    return telemetry_service.mqtt_service.get_all_live_tags_by_source("csv_replay_mqtt")
+
+@router.get("/tags/nodered")
+def get_nodered_source_tags(
+    telemetry_service: TelemetryService = Depends(get_telemetry_service),
+) -> Dict[str, Any]:
+    """
+    Returns the tags currently published by the Node-RED / KEPServerEX OPC UA
+    pipeline (source = 'nodered_opcua').
+    """
+    if not telemetry_service or not telemetry_service.mqtt_service:
+        return {}
+    return telemetry_service.mqtt_service.get_all_live_tags_by_source("nodered_opcua")
+
+@router.get("/sources")
+def get_active_sources(
+    telemetry_service: TelemetryService = Depends(get_telemetry_service),
+) -> Dict[str, Any]:
+    if not telemetry_service or not telemetry_service.mqtt_service:
+        return {"sources": []}
+    return {"sources": telemetry_service.mqtt_service.get_active_sources()}

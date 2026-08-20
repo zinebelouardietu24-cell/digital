@@ -23,6 +23,7 @@ class MQTTSubscriberService:
         self.topic_prefix = topic_prefix
 
         self._latest_tags: Dict[str, Dict[str, Any]] = {}
+        self._latest_tags_by_source: Dict[str, Dict[str, Dict[str, Any]]] = defaultdict(dict)
         self._topic_map: Dict[str, Dict[str, Any]] = {}
         self._history: Dict[str, deque] = defaultdict(lambda: deque(maxlen=100))
         self._lock = threading.Lock()
@@ -73,11 +74,13 @@ class MQTTSubscriberService:
             payload = json.loads(msg.payload.decode("utf-8"))
             topic = msg.topic
             tag_id = payload.get("tag_id")
+            source = payload.get("source", "unknown")
 
             with self._lock:
                 self._topic_map[topic] = payload
                 if tag_id:
                     self._latest_tags[tag_id] = payload
+                    self._latest_tags_by_source[source][tag_id] = payload
                     self._history[tag_id].append(payload)
         except Exception as e:
             logger.debug(f"Error processing MQTT message on topic {msg.topic}: {e}")
@@ -96,6 +99,14 @@ class MQTTSubscriberService:
     def get_all_live_tags(self) -> Dict[str, Dict[str, Any]]:
         with self._lock:
             return dict(self._latest_tags)
+
+    def get_all_live_tags_by_source(self, source: str) -> Dict[str, Dict[str, Any]]:
+        with self._lock:
+            return dict(self._latest_tags_by_source.get(source, {}))
+
+    def get_active_sources(self) -> List[str]:
+        with self._lock:
+            return list(self._latest_tags_by_source.keys())
 
     def get_tag_history(self, tag_id: str, limit: int = 50) -> List[Dict[str, Any]]:
         with self._lock:
@@ -123,6 +134,7 @@ class MQTTSubscriberService:
         """Clears in-memory live tags and history buffer on simulation stop/reset."""
         with self._lock:
             self._latest_tags.clear()
+            self._latest_tags_by_source.clear()
             self._topic_map.clear()
             self._history.clear()
             logger.info("Cleared in-memory MQTT telemetry buffers.")

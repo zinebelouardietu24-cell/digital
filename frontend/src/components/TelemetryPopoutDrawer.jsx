@@ -73,6 +73,16 @@ const PopoutMetricCard = ({ label, value, unit }) => {
 /**
  * Modern Draggable Glassmorphism Telemetry Drawer Component (ISA-101 Compliant)
  */
+/**
+ * "SolidFlow" -> "Solid Flow", "BearingDETemp" -> "Bearing DE Temp"
+ */
+function formatNoderedLabel(param) {
+  return String(param)
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .replace(/\./g, " ")
+    .trim();
+}
+
 export default function TelemetryPopoutDrawer({
   displayAsset,
   error,
@@ -82,6 +92,7 @@ export default function TelemetryPopoutDrawer({
   getDisplayMetricName,
   getMetricUnit,
   renderSourceDestValue,
+  noderedMetrics = {},
 }) {
   const [isMinimized, setIsMinimized] = useState(false);
   const [position, setPosition] = useState({ x: null, y: null });
@@ -390,6 +401,20 @@ export default function TelemetryPopoutDrawer({
               <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "0.4rem" }}>
                 {Object.entries(displayAsset.derived_metrics).map(([key, val]) => (
                   <PopoutMetricCard key={key} label={getDisplayMetricName ? getDisplayMetricName(key) : key} value={val} unit={getMetricUnit ? getMetricUnit(key) : ""} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Node-RED / OPC UA Live Section */}
+          {Object.keys(noderedMetrics).length > 0 && (
+            <div style={{ marginTop: "0.75rem" }}>
+              <div style={{ fontSize: "0.72rem", color: "#cbd5e1", marginBottom: "0.45rem", textTransform: "uppercase", letterSpacing: "0.5px", fontWeight: "800", display: "flex", alignItems: "center", gap: "0.35rem" }}>
+                <Radio size={13} color="#34d399" /> NODE-RED · OPC UA (LIVE)
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "0.4rem" }}>
+                {Object.entries(noderedMetrics).map(([param, payload]) => (
+                  <PopoutMetricCard key={param} label={formatNoderedLabel(param)} value={payload?.value} unit={payload?.unit} />
                 ))}
               </div>
             </div>
