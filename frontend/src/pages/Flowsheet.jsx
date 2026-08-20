@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { Play, Pause, RotateCcw, Square, ChevronLeft, ChevronRight, SlidersHorizontal } from "lucide-react";
+import { getHistoricalTags, getNoderedTags } from "../api/simulationApi";
+import WhatIfPanel from "../components/WhatIfPanel";
 
 /**
  * Centralized Layout Grid Configuration (1120 x 580 canvas)
  * Ensures perfect alignment, equal component spacing, and clean pipe routing.
  */
-const LAYOUT = {
+export const LAYOUT = {
   canvas: { width: 1120, height: 580 },
 
   // Stream Nodes (Feed Inputs & Discharge Outputs)
@@ -375,7 +377,7 @@ const EquipmentTitle = ({ title, y, isSelected }) => (
 /**
  * Pump Box Component (PB_001) - Clean Original Geometry with Wavering Slurry Surface
  */
-const PumpBox = ({ tag, x, y, selected, onSelect, isRunning, isStepActive }) => {
+const PumpBox = ({ tag, x, y, selected, onSelect, isRunning, isStepActive, liveReadout }) => {
   const isSelected = selected === tag;
   const strokeColor = isSelected ? SELECTION_CYAN : BASE_STROKE;
   const fillColor = isSelected ? "#1e293b" : BASE_FILL;
@@ -431,6 +433,7 @@ const PumpBox = ({ tag, x, y, selected, onSelect, isRunning, isStepActive }) => 
         <rect x="-12" y="34" width="24" height="15" fill="#334155" stroke={strokeColor} strokeWidth="1.5" />
 
         <EquipmentTitle title="PUMP BOX" y={64} isSelected={isSelected} />
+        {liveReadout && <LiveReadout y={84} value={liveReadout.value} unit={liveReadout.unit} quality={liveReadout.quality} />}
       </g>
     </g>
   );
@@ -439,7 +442,7 @@ const PumpBox = ({ tag, x, y, selected, onSelect, isRunning, isStepActive }) => 
 /**
  * Centrifugal Slurry Pump Component (SP_001) - Clean Original Geometry with Spinning Impeller
  */
-const Pump = ({ tag, x, y, selected, onSelect, isRunning, isStepActive }) => {
+const Pump = ({ tag, x, y, selected, onSelect, isRunning, isStepActive, liveReadout }) => {
   const isSelected = selected === tag;
   const strokeColor = isSelected ? SELECTION_CYAN : BASE_STROKE;
   const fillColor = isSelected ? "#1e293b" : BASE_FILL;
@@ -480,6 +483,7 @@ const Pump = ({ tag, x, y, selected, onSelect, isRunning, isStepActive }) => {
         <circle cx="0" cy="0" r="5" fill="#f8fafc" stroke="#0f172a" strokeWidth="1.5" />
 
         <EquipmentTitle title="SLURRY PUMP" y={48} isSelected={isSelected} />
+        {liveReadout && <LiveReadout y={68} value={liveReadout.value} unit={liveReadout.unit} quality={liveReadout.quality} />}
       </g>
     </g>
   );
@@ -488,7 +492,7 @@ const Pump = ({ tag, x, y, selected, onSelect, isRunning, isStepActive }) => {
 /**
  * Hydrocyclone Cluster Component (CY_001) - Clean Original Geometry with Swirling Vortex Lines
  */
-const Hydrocyclone = ({ tag, x, y, selected, onSelect, isRunning, isStepActive }) => {
+const Hydrocyclone = ({ tag, x, y, selected, onSelect, isRunning, isStepActive, liveReadout }) => {
   const isSelected = selected === tag || (selected && selected.startsWith("CY_001"));
   const strokeColor = isSelected ? SELECTION_CYAN : BASE_STROKE;
   const fillColor = isSelected ? "#1e293b" : BASE_FILL;
@@ -574,6 +578,7 @@ const Hydrocyclone = ({ tag, x, y, selected, onSelect, isRunning, isStepActive }
         <rect x="-38" y="56" width="76" height="10" rx="2" fill="#334155" stroke={strokeColor} strokeWidth="1.5" />
 
         <EquipmentTitle title="HYDROCYCLONES" y={82} isSelected={isSelected} />
+        {liveReadout && <LiveReadout y={102} value={liveReadout.value} unit={liveReadout.unit} quality={liveReadout.quality} />}
       </g>
     </g>
   );
@@ -582,7 +587,7 @@ const Hydrocyclone = ({ tag, x, y, selected, onSelect, isRunning, isStepActive }
 /**
  * Ball Mill Component (BM_001) - Clean Original Geometry with Pulsing Girth Gear & Rotating Lifter Ribs
  */
-const BallMill = ({ tag, x, y, selected, onSelect, isRunning, isStepActive }) => {
+const BallMill = ({ tag, x, y, selected, onSelect, isRunning, isStepActive, liveReadout }) => {
   const isSelected = selected === tag;
   const strokeColor = isSelected ? SELECTION_CYAN : BASE_STROKE;
   const fillColor = isSelected ? "#1e293b" : BASE_FILL;
@@ -639,6 +644,7 @@ const BallMill = ({ tag, x, y, selected, onSelect, isRunning, isStepActive }) =>
         </g>
 
         <EquipmentTitle title="BALL MILL" y={68} isSelected={isSelected} />
+        {liveReadout && <LiveReadout y={88} value={liveReadout.value} unit={liveReadout.unit} quality={liveReadout.quality} />}
       </g>
     </g>
   );
@@ -697,6 +703,42 @@ const StreamNode = ({ label, tag, x, y, color, type = "input", selected, onSelec
   );
 };
 
+/**
+ * Compact Live Value Readout — mounted under an equipment's title to show
+ * one representative real-time Node-RED/OPC UA tag directly on the flowsheet.
+ */
+const LiveReadout = ({ y, value, unit, quality }) => {
+  const hasData = value !== undefined && value !== null && !Number.isNaN(value);
+  const isGood = quality === "Good" || quality === "SIM";
+  const dotColor = !hasData ? "#475569" : isGood ? "#34d399" : "#f87171";
+
+  return (
+    <g transform={`translate(0, ${y})`} opacity={hasData ? 1 : 0.55} style={{ transition: "opacity 0.3s ease" }}>
+      <rect x="-38" y="-9" width="76" height="18" rx="9" fill={CARD_BG} stroke={BASE_STROKE} strokeWidth="1.2" />
+      <circle cx="-27" cy="0" r="2.5" fill={dotColor} style={{ animation: hasData && isGood ? "livePulse 1.8s ease-in-out infinite" : "none" }} />
+      <text x="-19" y="3" textAnchor="start" fill="#38bdf8" fontSize="9.5" fontWeight="700" fontFamily="Inter, system-ui, sans-serif" letterSpacing="0.2px">
+        {hasData ? Number(value).toFixed(1) : "—"}
+        <tspan fill="#64748b" fontSize="7.5" dx="2.5">{hasData ? unit : ""}</tspan>
+      </text>
+    </g>
+  );
+};
+
+/**
+ * Groups a flat { tagId: payload } map into { "EQUIP.CONTEXT": [payload, ...] }
+ * buckets, sorted by equipment then context, for a readable drawer layout.
+ */
+function groupTagsForDrawer(tags) {
+  const groups = {};
+  Object.entries(tags).forEach(([tagId, payload]) => {
+    const [equip, context] = tagId.split(".");
+    const key = `${equip || "?"}.${context || "?"}`;
+    if (!groups[key]) groups[key] = [];
+    groups[key].push({ tagId, ...payload });
+  });
+  return Object.entries(groups).sort(([a], [b]) => a.localeCompare(b));
+}
+
 const STEP_LABELS = {
   1: "STARTUP STEP 1/5 • FEED INLETS ACTIVATED",
   2: "STARTUP STEP 2/5 • SUMP & SLURRY PUMP ON",
@@ -723,6 +765,50 @@ export default function Flowsheet({
 }) {
   const [simStep, setSimStep] = useState(0);
   const [isBoxOpen, setIsBoxOpen] = useState(false);
+  const [showHistoricalDrawer, setShowHistoricalDrawer] = useState(false);
+  const [historicalTags, setHistoricalTags] = useState({});
+  const [showNoderedDrawer, setShowNoderedDrawer] = useState(false);
+  const [noderedTags, setNoderedTags] = useState({});
+  const [showWhatIfDrawer, setShowWhatIfDrawer] = useState(false);
+
+  // "CY_001" (flowsheet tag) -> "CY001" (MQTT tag_id prefix, no underscore)
+  const equipmentPrefix = selected ? selected.replace(/_/g, "").split(".")[0] : null;
+  const filterBySelection = (tags) => {
+    const entries = Object.entries(tags);
+    if (!equipmentPrefix) return entries;
+    return entries.filter(([tagId]) => tagId.toUpperCase().startsWith(equipmentPrefix.toUpperCase() + "."));
+  };
+
+  useEffect(() => {
+    if (!showHistoricalDrawer) return;
+    const fetchHistorical = async () => {
+      try {
+        const data = await getHistoricalTags();
+        setHistoricalTags(data);
+      } catch (e) {
+        console.error("CSV->MQTT publisher tags fetch failed:", e);
+      }
+    };
+    fetchHistorical();
+    const timer = setInterval(fetchHistorical, 1000);
+    return () => clearInterval(timer);
+  }, [showHistoricalDrawer]);
+
+  // Polled continuously (not just while the drawer is open) so the live
+  // readouts on the equipment icons themselves stay up to date.
+  useEffect(() => {
+    const fetchNodered = async () => {
+      try {
+        const data = await getNoderedTags();
+        setNoderedTags(data);
+      } catch (e) {
+        console.error("Node-RED tags fetch failed:", e);
+      }
+    };
+    fetchNodered();
+    const timer = setInterval(fetchNodered, 2000);
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     if (!isRunning) {
@@ -1015,11 +1101,202 @@ export default function Flowsheet({
                 >
                   <span className="pulse-dot" /> {simStatus?.mqtt?.total_live_tags ?? 0} Tags
                 </div>
+
+                <button
+                  onClick={() => setShowHistoricalDrawer((v) => !v)}
+                  style={{
+                    background: showHistoricalDrawer ? "#7c3aed" : "#162032",
+                    border: "1px solid #7c3aed",
+                    borderRadius: "5px",
+                    padding: "0.2rem 0.5rem",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.3rem",
+                    fontSize: "0.68rem",
+                    color: "#c4b5fd",
+                    fontWeight: "800",
+                    cursor: "pointer",
+                  }}
+                  title="Donnees publiees par le script Python (mqtt-publisher) qui lit les CSV et les envoie via le broker MQTT"
+                >
+                  🐍 CSV → MQTT (Python)
+                </button>
+
+                <button
+                  onClick={() => setShowNoderedDrawer((v) => !v)}
+                  style={{
+                    background: showNoderedDrawer ? "#0284c7" : "#162032",
+                    border: "1px solid #0284c7",
+                    borderRadius: "5px",
+                    padding: "0.2rem 0.5rem",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.3rem",
+                    fontSize: "0.68rem",
+                    color: "#7dd3fc",
+                    fontWeight: "800",
+                    cursor: "pointer",
+                  }}
+                  title="Donnees publiees par Node-RED depuis KEPServerEX (OPC UA) via le broker MQTT"
+                >
+                  🔌 Node-RED (OPC UA)
+                </button>
+
+                <button
+                  onClick={() => setShowWhatIfDrawer((v) => !v)}
+                  style={{
+                    background: showWhatIfDrawer ? "#10b981" : "#162032",
+                    border: "1px solid #10b981",
+                    borderRadius: "5px",
+                    padding: "0.2rem 0.5rem",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.3rem",
+                    fontSize: "0.68rem",
+                    color: showWhatIfDrawer ? "#0f172a" : "#6ee7b7",
+                    fontWeight: "800",
+                    cursor: "pointer",
+                  }}
+                  title="Simulateur what-if base sur un modele ML entraine sur l'historique reel du circuit"
+                >
+                  🧪 What-If (ML)
+                </button>
               </div>
             </div>
           )}
         </div>
       )}
+
+      {/* CSV -> MQTT Python Publisher Drawer */}
+      {showHistoricalDrawer && (
+        <div
+          style={{
+            position: "fixed", top: 0, right: 0, width: "380px", height: "100vh",
+            background: "#0f172a", borderLeft: "1px solid #7c3aed",
+            boxShadow: "-5px 0 25px rgba(0,0,0,0.5)", zIndex: 10000,
+            display: "flex", flexDirection: "column", padding: "1rem", boxSizing: "border-box",
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem", borderBottom: "1px solid #1e293b", paddingBottom: "0.5rem" }}>
+            <span style={{ color: "#c4b5fd", fontWeight: "800", fontSize: "0.85rem" }}>🐍 Publisher Python (CSV → MQTT)</span>
+            <button onClick={() => setShowHistoricalDrawer(false)} style={{ background: "transparent", border: "none", color: "#94a3b8", fontSize: "1.1rem", cursor: "pointer" }}>✕</button>
+          </div>
+          <div style={{ color: "#64748b", fontSize: "0.68rem", marginBottom: "0.4rem" }}>
+            Données publiées par le conteneur mqtt-publisher (lecture directe des CSV, envoi via le broker MQTT).
+          </div>
+          {equipmentPrefix && (
+            <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", marginBottom: "0.6rem", background: "#2e1065", border: "1px solid #7c3aed", borderRadius: "5px", padding: "0.35rem 0.6rem" }}>
+              <span style={{ color: "#e9d5ff", fontSize: "0.72rem", fontWeight: "700" }}>Filtré sur : {equipmentPrefix}</span>
+              <button onClick={() => onSelect && onSelect(null)} style={{ marginLeft: "auto", background: "transparent", border: "none", color: "#c4b5fd", fontSize: "0.68rem", cursor: "pointer", textDecoration: "underline" }}>
+                Tout afficher
+              </button>
+            </div>
+          )}
+          <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: "0.45rem" }}>
+            {filterBySelection(historicalTags).length === 0 ? (
+              <div style={{ color: "#64748b", textAlign: "center", padding: "2rem 0", fontSize: "0.78rem" }}>
+                {Object.keys(historicalTags).length === 0
+                  ? "Aucune donnée reçue — vérifie que le conteneur mqtt-publisher tourne (docker compose up mqtt-publisher)."
+                  : `Aucun tag pour ${equipmentPrefix}.`}
+              </div>
+            ) : (
+              filterBySelection(historicalTags).map(([tagId, payload]) => (
+                <div key={tagId} style={{ background: "#1e1b3a", border: "1px solid #7c3aed", borderRadius: "6px", padding: "0.5rem", fontSize: "0.7rem" }}>
+                  <div style={{ color: "#c4b5fd", fontWeight: "700", fontFamily: "monospace" }}>{tagId}</div>
+                  <div style={{ color: "#ddd6fe", fontFamily: "monospace", fontSize: "0.68rem" }}>
+                    {payload.value?.toFixed?.(2) ?? payload.value} {payload.unit}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Node-RED / KEPServerEX OPC UA Drawer */}
+      {showNoderedDrawer && (
+        <div
+          style={{
+            position: "fixed", top: 0, right: 0, width: "380px", height: "100vh",
+            background: "#0f172a", borderLeft: "1px solid #0284c7",
+            boxShadow: "-5px 0 25px rgba(0,0,0,0.5)", zIndex: 10000,
+            display: "flex", flexDirection: "column", padding: "1rem", boxSizing: "border-box",
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem", borderBottom: "1px solid #1e293b", paddingBottom: "0.5rem" }}>
+            <span style={{ color: "#7dd3fc", fontWeight: "800", fontSize: "0.85rem" }}>🔌 Node-RED (KEPServerEX / OPC UA)</span>
+            <button onClick={() => setShowNoderedDrawer(false)} style={{ background: "transparent", border: "none", color: "#94a3b8", fontSize: "1.1rem", cursor: "pointer" }}>✕</button>
+          </div>
+          <div style={{ color: "#64748b", fontSize: "0.68rem", marginBottom: "0.4rem" }}>
+            Données publiées par le flow Node-RED, abonné en OPC UA à KEPServerEX, republiées via le broker MQTT.
+          </div>
+          {equipmentPrefix && (
+            <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", marginBottom: "0.6rem", background: "#0c2b47", border: "1px solid #0284c7", borderRadius: "5px", padding: "0.35rem 0.6rem" }}>
+              <span style={{ color: "#bae6fd", fontSize: "0.72rem", fontWeight: "700" }}>Filtré sur : {equipmentPrefix}</span>
+              <button onClick={() => onSelect && onSelect(null)} style={{ marginLeft: "auto", background: "transparent", border: "none", color: "#7dd3fc", fontSize: "0.68rem", cursor: "pointer", textDecoration: "underline" }}>
+                Tout afficher
+              </button>
+            </div>
+          )}
+          <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: "0.7rem" }}>
+            {(() => {
+              const filteredEntries = filterBySelection(noderedTags);
+              if (filteredEntries.length === 0) {
+                return (
+                  <div style={{ color: "#64748b", textAlign: "center", padding: "2rem 0", fontSize: "0.78rem" }}>
+                    {Object.keys(noderedTags).length === 0
+                      ? "Aucune donnée reçue — vérifie que Node-RED est déployé et connecté au broker."
+                      : `Aucun tag pour ${equipmentPrefix}.`}
+                  </div>
+                );
+              }
+              const filteredMap = Object.fromEntries(filteredEntries);
+              return groupTagsForDrawer(filteredMap).map(([groupKey, items]) => {
+                const [equip, context] = groupKey.split(".");
+                return (
+                  <div key={groupKey}>
+                    <div style={{ display: "flex", alignItems: "baseline", gap: "0.4rem", marginBottom: "0.3rem" }}>
+                      <span style={{ color: "#7dd3fc", fontWeight: "800", fontSize: "0.74rem", fontFamily: "monospace" }}>{equip}</span>
+                      <span style={{ color: "#64748b", fontWeight: "700", fontSize: "0.64rem", letterSpacing: "0.5px", textTransform: "uppercase" }}>{context}</span>
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+                      {items.map((item) => {
+                        const isGood = item.quality === "Good" || item.quality === "SIM";
+                        const param = item.tagId.split(".").slice(2).join(".");
+                        return (
+                          <div
+                            key={item.tagId}
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                              background: "#0c2338",
+                              border: "1px solid #164e63",
+                              borderRadius: "5px",
+                              padding: "0.35rem 0.55rem",
+                              fontSize: "0.72rem",
+                            }}
+                          >
+                            <span style={{ display: "flex", alignItems: "center", gap: "0.4rem", color: "#94a3b8", fontFamily: "monospace" }}>
+                              <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: isGood ? "#34d399" : "#f87171", flexShrink: 0 }} />
+                              {param}
+                            </span>
+                            <span style={{ color: "#bae6fd", fontFamily: "monospace", fontWeight: "700" }}>
+                              {typeof item.value === "number" ? item.value.toFixed(2) : item.value} {item.unit}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              });
+            })()}
+          </div>
+        </div>
+      )}
+
+      <WhatIfPanel isOpen={showWhatIfDrawer} onClose={() => setShowWhatIfDrawer(false)} />
 
       {/* Main Process Flow Diagram SVG */}
       <svg
@@ -1060,6 +1337,11 @@ export default function Flowsheet({
             0% { transform: translateY(-16px); opacity: 0.3; }
             50% { opacity: 1; }
             100% { transform: translateY(16px); opacity: 0.3; }
+          }
+          @keyframes livePulse {
+            0% { opacity: 0.5; r: 2.5; }
+            50% { opacity: 1; r: 3; }
+            100% { opacity: 0.5; r: 2.5; }
           }
           .flowsheet-equipment {
             transition: transform 0.25s ease, filter 0.25s ease;
@@ -1127,6 +1409,7 @@ export default function Flowsheet({
           onSelect={onSelect}
           isRunning={isRunning}
           isStepActive={simStep >= 2}
+          liveReadout={noderedTags["PB001.IN.SolidFlow"]}
         />
         <Pump
           tag="SP_001"
@@ -1136,6 +1419,7 @@ export default function Flowsheet({
           onSelect={onSelect}
           isRunning={isRunning}
           isStepActive={simStep >= 2}
+          liveReadout={noderedTags["SP001.HEALTH.MotorCurrent"]}
         />
         <Hydrocyclone
           tag="CY_001"
@@ -1145,6 +1429,7 @@ export default function Flowsheet({
           onSelect={onSelect}
           isRunning={isRunning}
           isStepActive={simStep >= 3}
+          liveReadout={noderedTags["CY001.FEED.SolidFlow"]}
         />
         <BallMill
           tag="BM_001"
@@ -1154,6 +1439,7 @@ export default function Flowsheet({
           onSelect={onSelect}
           isRunning={isRunning}
           isStepActive={simStep >= 4}
+          liveReadout={noderedTags["BM001.HEALTH.PowerDraw"]}
         />
 
         {/* 4. PIPE TAG LABELS LAYER */}

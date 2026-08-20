@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Menu, Activity, Radio, Bot, Sparkles, LogOut, UserCheck, Columns, Split, SlidersHorizontal } from "lucide-react";
 import { useAuth } from "./context/AuthContext";
 import Flowsheet from "./pages/Flowsheet";
+import ThreeDView from "./pages/ThreeDView";
 import MaintenancePage from "./pages/MaintenancePage";
 import KnowledgeGraphPage from "./pages/KnowledgeGraphPage";
 import NavigationSidebar from "./components/NavigationSidebar";
@@ -15,6 +16,7 @@ import {
   stopSimulation,
   restartSimulation,
   setSimulationSpeed,
+  getNoderedTags,
 } from "./api/simulationApi";
 import { API_BASE as API } from "./config/api.config";
 import "./styles/App.css";
@@ -435,7 +437,35 @@ export default function App() {
     return () => clearInterval(interval);
   }, []);
 
+  // Live Node-RED/OPC UA tags, polled continuously and filtered to whichever
+  // equipment is currently selected, so the telemetry drawer can show them
+  // alongside the CSV-driven live_metrics without a separate fixed panel.
+  const [noderedTags, setNoderedTags] = useState({});
+  useEffect(() => {
+    const fetchNodered = async () => {
+      try {
+        setNoderedTags(await getNoderedTags());
+      } catch (err) {
+        console.error("Node-RED tags fetch failed:", err);
+      }
+    };
+    fetchNodered();
+    const interval = setInterval(fetchNodered, 2000);
+    return () => clearInterval(interval);
+  }, []);
+
   const displayAsset = adjustAssetDataForStartup(asset, simStep, simStatus?.state);
+
+  const noderedMetrics = {};
+  if (selectedTag) {
+    const equipPrefix = selectedTag.replace(/_/g, "").split(".")[0].toUpperCase();
+    Object.entries(noderedTags).forEach(([tagId, payload]) => {
+      if (tagId.toUpperCase().startsWith(`${equipPrefix}.`)) {
+        const param = tagId.split(".").slice(2).join(".") || tagId;
+        noderedMetrics[param] = payload;
+      }
+    });
+  }
 
   const hasLiveMetrics = Boolean(displayAsset?.live_metrics && Object.keys(displayAsset.live_metrics).length > 0);
   const hasIncomingStreams = Boolean(displayAsset?.incoming_streams && Object.keys(displayAsset.incoming_streams).length > 0);
@@ -502,7 +532,13 @@ export default function App() {
             <span style={{ color: "#f8fafc", fontWeight: "900" }}>NEXUS</span> DIGITAL TWIN{" "}
             <span style={{ color: "#475569", fontWeight: "300", margin: "0 0.4rem" }}>|</span>{" "}
             <span style={{ color: "#cbd5e1", fontWeight: "500", fontSize: "0.82rem" }}>
-              {activeTab === "flowsheet" ? "Process Flowsheet & System Knowledge Graph Dual View" : activeTab === "maintenance" ? "Level 3 Health • Asset Reliability & Circuit Maintenance" : "Level 2 Topology • Knowledge Graph & System Network"}
+              {activeTab === "flowsheet"
+                ? "Process Flowsheet & System Knowledge Graph Dual View"
+                : activeTab === "3d"
+                ? "Realistic 3D Circuit View with Live Equipment Telemetry"
+                : activeTab === "maintenance"
+                ? "Level 3 Health • Asset Reliability & Circuit Maintenance"
+                : "Level 2 Topology • Knowledge Graph & System Network"}
             </span>
           </h1>
         </div>
@@ -572,7 +608,39 @@ export default function App() {
         </div>
       </header>
 
-      {activeTab !== "maintenance" ? (
+      {activeTab === "3d" ? (
+        <main
+          style={{
+            flex: 1,
+            height: "calc(100vh - 52px)",
+            maxHeight: "calc(100vh - 52px)",
+            position: "relative",
+            overflow: "hidden",
+            background: "#0a0e17",
+          }}
+        >
+          <ThreeDView
+            onSelect={(tag) => loadAsset(tag, "3d")}
+            selected={asset?.tag}
+            isRunning={simStatus?.state === "RUNNING"}
+          />
+
+          <TelemetryPopoutDrawer
+            displayAsset={displayAsset}
+            error={error}
+            isOpen={showTelemetryDrawer}
+            selectionSource={selectionSource}
+            onClose={() => {
+              setShowTelemetryDrawer(false);
+              loadAsset(null);
+            }}
+            getDisplayMetricName={getDisplayMetricName}
+            getMetricUnit={getMetricUnit}
+            renderSourceDestValue={renderSourceDestValue}
+            noderedMetrics={noderedMetrics}
+          />
+        </main>
+      ) : activeTab !== "maintenance" ? (
         <main
           style={{
             flex: 1,
@@ -733,6 +801,7 @@ export default function App() {
             getDisplayMetricName={getDisplayMetricName}
             getMetricUnit={getMetricUnit}
             renderSourceDestValue={renderSourceDestValue}
+            noderedMetrics={noderedMetrics}
           />
         </main>
       ) : (

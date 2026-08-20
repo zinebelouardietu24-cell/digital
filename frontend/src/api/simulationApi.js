@@ -93,3 +93,37 @@ export async function getMqttTags() {
   if (!res.ok) throw new Error("Failed to fetch MQTT live tags");
   return res.json();
 }
+
+export async function getHistoricalTags() {
+  const res = await fetch(`${API_BASE}/api/mqtt/tags/historical`, {
+    headers: getAuthHeaders(),
+  });
+  if (!res.ok) throw new Error("Failed to fetch CSV->MQTT publisher tags");
+  return res.json();
+}
+
+export async function getNoderedTags() {
+  const res = await fetch(`${API_BASE}/api/mqtt/tags/nodered`, {
+    headers: getAuthHeaders(),
+  });
+  if (!res.ok) throw new Error("Failed to fetch Node-RED/OPC UA tags");
+  return res.json();
+}
+
+export async function getWhatIfConfig() {
+  const res = await fetch(`${API_BASE}/api/whatif/config`, {
+    headers: getAuthHeaders(),
+  });
+  if (!res.ok) throw new Error("Failed to fetch what-if config");
+  return res.json();
+}
+
+export async function predictWhatIf(inputs) {
+  const res = await fetch(`${API_BASE}/api/whatif/predict`, {
+    method: "POST",
+    headers: getAuthHeaders({ "Content-Type": "application/json" }),
+    body: JSON.stringify(inputs),
+  });
+  if (!res.ok) throw new Error("Failed to run what-if prediction");
+  return res.json();
+}

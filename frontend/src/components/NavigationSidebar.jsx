@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Activity, Wrench, Cpu, ChevronRight, ChevronLeft, Share2 } from "lucide-react";
+import { Activity, Wrench, Cpu, ChevronRight, ChevronLeft, Share2, Boxes } from "lucide-react";
 
 /**
  * ISA-101 High Performance HMI Navigation Sidebar.
@@ -27,6 +27,12 @@ export default function NavigationSidebar({ isOpen, onClose, onOpen, activeTab, 
       label: "Process Flowsheet & Knowledge Graph",
       sublabel: "Dual View: Interactive P&ID overview and live system topology network",
       Icon: Activity,
+    },
+    {
+      id: "3d",
+      label: "3D Digital Twin",
+      sublabel: "Realistic 3D circuit view with live equipment telemetry",
+      Icon: Boxes,
     },
     {
       id: "maintenance",

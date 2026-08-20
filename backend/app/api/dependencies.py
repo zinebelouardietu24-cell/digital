@@ -11,6 +11,7 @@ from app.domains.knowledge_graph.service import KnowledgeGraphService
 from app.domains.knowledge_graph.rag_service import GraphRAGService
 from app.domains.auth.service import AuthService
 from app.domains.auth.schemas import UserResponse
+from app.domains.whatif.service import WhatIfService
 from app.core.security import decode_access_token
 from app.core.config import settings
 
@@ -23,13 +24,15 @@ _sim_manager: SimulationManager = None
 _kg_service: KnowledgeGraphService = None
 _rag_service: GraphRAGService = None
 _auth_service: AuthService = None
+_whatif_service: WhatIfService = None
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login", auto_error=True)
 
 def init_app_services():
-    global _csv_provider, _asset_service, _mqtt_service, _telemetry_service, _sim_manager, _kg_service, _rag_service, _auth_service
+    global _csv_provider, _asset_service, _mqtt_service, _telemetry_service, _sim_manager, _kg_service, _rag_service, _auth_service, _whatif_service
 
     _csv_provider = CSVDataProvider(settings.DATA_DIR)
+    _whatif_service = WhatIfService(_csv_provider)
     _asset_service = AssetService(
         assets_file_path=settings.ASSETS_PATH,
         equipment_repo=EquipmentRepository(settings.EQUIPMENT_MASTER_PATH),
@@ -71,6 +74,9 @@ def get_kg_service() -> KnowledgeGraphService:
 
 def get_rag_service() -> GraphRAGService:
     return _rag_service
+
+def get_whatif_service() -> WhatIfService:
+    return _whatif_service
 
 def get_auth_service() -> AuthService:
     global _auth_service
