@@ -1,0 +1,200 @@
+\chapter{Contexte général du projet}
+\label{chap:contexte}
+
+\section{Introduction}
+Ce chapitre situe le projet dans son environnement. Il présente d'abord l'organisme d'accueil, JESA, puis le secteur du phosphate au Maroc, avant de décrire le circuit de broyage étudié et les difficultés opérationnelles qui motivent la réalisation d'un jumeau numérique.
+
+\section{L'organisme d'accueil : JESA}
+
+\subsection{Présentation générale}
+JESA est une société marocaine d'ingénierie et de gestion de projets dont le siège est à Casablanca. Elle se présente comme un acteur africain de référence en conception, ingénierie, réalisation de projets et gestion d'actifs, avec pour ambition affichée d'être «~\textit{The Solution Company for Africa}~»~\cite{jesaabout}. L'entreprise revendique plus de 400 projets livrés et des collaborateurs de 30 nationalités différentes~\cite{jesaabout}.
+
+\subsection{Historique}
+L'histoire de JESA est marquée par trois étapes principales, résumées dans la figure~\ref{fig:timeline}.
+
+\begin{itemize}
+  \item \textbf{2010 -- Création.} JESA (\textit{Jacobs Engineering SA}) naît d'une coentreprise entre le Groupe OCP et l'américain Jacobs Engineering, avec pour mission initiale d'accompagner le programme industriel d'OCP~\cite{jesawiki,jesaabout}.
+  \item \textbf{2012 -- Diversification.} La société annonce l'acquisition de 100\,\% de Team Maroc, bureau d'études basé à Rabat employant alors 171 personnes et spécialisé dans les infrastructures, ce qui ouvre JESA à des marchés au-delà du phosphate~\cite{jacobsteammaroc}.
+  \item \textbf{2019 -- Changement d'actionnaire.} Le groupe australien Worley finalise le 26 avril 2019 le rachat de la division \textit{Energy, Chemicals and Resources} de Jacobs~\cite{worleyasx}. La participation de Jacobs dans JESA est transférée à Worley : JESA devient une coentreprise OCP -- Worley~\cite{jesawiki}.
+\end{itemize}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+  annee/.style={circle,draw=bleu,fill=bleuclair,thick,minimum size=1.3cm,font=\bfseries\color{bleu}},
+  evt/.style={draw=bleu!50,rounded corners=3pt,fill=white,text width=3.3cm,align=center,font=\footnotesize,inner sep=4pt}]
+  \draw[bleu,line width=1.5pt] (0,0) -- (13.5,0);
+  \foreach \x/\a/\t [count=\i] in {
+      1.2/2010/{Création de la coentreprise OCP -- Jacobs},
+      5.0/2012/{Acquisition de Team Maroc (171 personnes)},
+      8.8/2019/{Worley rachète Jacobs ECR et devient actionnaire},
+      12.4/2024/{Environ 4\,500 collaborateurs}}{
+    \node[annee] (a\i) at (\x,0) {\a};
+    \ifodd\i \node[evt,above=0.4cm of a\i] {\t}; \else \node[evt,below=0.4cm of a\i] {\t}; \fi
+  }
+\end{tikzpicture}
+\caption{Principales étapes du développement de JESA (sources : \cite{jesaabout,jacobsteammaroc,worleyasx})}
+\label{fig:timeline}
+\end{figure}
+
+\subsection{Croissance des effectifs}
+La croissance de JESA se lit dans l'évolution de ses effectifs, publiée par l'entreprise (figure~\ref{fig:effectifs}) : de 50 collaborateurs en août 2010, la société est passée à environ 4\,500 en 2024~\cite{jesaabout}.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[x=1.45cm,y=0.0011cm]
+  \draw[gris] (0,0) -- (7.6,0);
+  \foreach \v in {1000,2000,3000,4000} {
+    \draw[gris!30] (0,\v) -- (7.6,\v);
+    \node[left,font=\scriptsize,gris] at (0,\v) {\v};
+  }
+  \foreach \i/\an/\val in {1/2010/285,2/2013/924,3/2015/1150,4/2017/1600,5/2020/2500,6/2022/2500,7/2024/4500}{
+    \fill[bleu] (\i-0.3,0) rectangle (\i+0.3,\val);
+    \node[above,font=\scriptsize\bfseries] at (\i,\val) {\val};
+    \node[below,font=\scriptsize] at (\i,0) {\an};
+  }
+\end{tikzpicture}
+\caption{Évolution des effectifs de JESA (fin 2010 à 2024, source : \cite{jesaabout})}
+\label{fig:effectifs}
+\end{figure}
+
+\subsection{Fiche d'identité}
+
+\begin{table}[H]
+\centering
+\caption{Fiche d'identité de JESA}
+\label{tab:fiche}
+\rowcolors{2}{grisclair}{white}
+\begin{tabularx}{\textwidth}{>{\bfseries}l X}
+\toprule
+Raison sociale & JESA (à l'origine \textit{Jacobs Engineering SA})~\cite{jesawiki} \\
+Forme juridique & Société anonyme~\cite{jesawiki} \\
+Création & 2010~\cite{jesaabout} \\
+Actionnaires & Groupe OCP et Worley, à parts égales~\cite{jesawiki} \\
+Siège & Casablanca, Maroc~\cite{jesaabout} \\
+Implantations & Maroc (Casablanca, Rabat), Côte d'Ivoire (Abidjan), Bénin (Cotonou), Sénégal (Dakar), États-Unis (Lakeland)~\cite{jesaabout} \\
+Effectif & Environ 4\,500 collaborateurs en 2024~\cite{jesaabout} \\
+Références & Plus de 400 projets livrés~\cite{jesaabout} \\
+Secteurs & Mines et industrie, bâtiment et infrastructures, gestion d'actifs, eau, développement urbain, énergie, ports, transport~\cite{jesaabout} \\
+Site web & \url{https://www.jesagroup.com} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Valeurs}
+JESA fonde son action sur deux principes fondateurs, la \textbf{sécurité} et l'\textbf{intégrité}, complétés par quatre valeurs : \textit{We Care}, \textit{We are Agile}, \textit{We Grow Together} et \textit{We are Inclusive and Diverse}~\cite{jesaabout}.
+
+\subsection{Cycle de vie d'un projet d'ingénierie}
+Comme la plupart des sociétés d'ingénierie, JESA conduit ses grands projets industriels en phases successives séparées par des points de décision (\textit{stage-gates})~\cite{cooper1990}. Chaque phase doit être validée avant d'engager les moyens de la suivante (figure~\ref{fig:stagegate}).
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[node distance=0.25cm,
+  ph/.style={boite,text width=1.9cm,minimum height=1.3cm,font=\scriptsize}]
+  \node[ph] (a) {\textbf{Étude conceptuelle}\\faisabilité};
+  \node[ph,right=of a] (b) {\textbf{Pré-FEED}\\choix des options};
+  \node[ph,right=of b] (c) {\textbf{FEED}\\ingénierie de base};
+  \node[ph,right=of c] (d) {\textbf{Ingénierie de détail}};
+  \node[ph,right=of d] (e) {\textbf{Achats}\\procurement};
+  \node[ph,right=of e,fill=vertclair,draw=vert] (f) {\textbf{Construction \& mise en service}};
+  \foreach \u/\v in {a/b,b/c,c/d,d/e,e/f} \draw[fleche] (\u) -- (\v);
+\end{tikzpicture}
+\caption{Phases successives d'un projet d'ingénierie industrielle}
+\label{fig:stagegate}
+\end{figure}
+
+Le présent stage s'est déroulé au sein de l'équipe Digital de JESA, qui travaille sur la convergence IT/\gls{ot}, la donnée industrielle et les jumeaux numériques. \AFAIRE{nom exact du département ou de la division d'accueil}
+
+\section{Le secteur du phosphate et le Groupe OCP}
+
+\subsection{Le poids du Maroc}
+D'après l'\textit{U.S. Geological Survey}, le Maroc possède 50 milliards de tonnes de réserves de roche phosphatée sur 73 milliards dans le monde, et a produit environ 36 millions de tonnes en 2025, derrière la Chine (110 millions de tonnes)~\cite{usgs2026}. Le tableau~\ref{tab:usgs} situe le Maroc par rapport aux autres grands producteurs.
+
+\begin{table}[H]
+\centering
+\caption{Production et réserves de roche phosphatée, en milliers de tonnes~\cite{usgs2026}}
+\label{tab:usgs}
+\begin{tabular}{lrrr}
+\toprule
+\textbf{Pays} & \textbf{Production 2024} & \textbf{Production 2025 (est.)} & \textbf{Réserves} \\
+\midrule
+Chine & 105\,000 & 110\,000 & 3\,400\,000 \\
+\rowcolor{bleuclair}\textbf{Maroc} & \textbf{35\,300} & \textbf{36\,000} & \textbf{50\,000\,000} \\
+États-Unis & 19\,400 & 20\,000 & 1\,000\,000 \\
+Russie & 14\,400 & 14\,000 & 2\,400\,000 \\
+Jordanie & 11\,500 & 12\,000 & 820\,000 \\
+\midrule
+\textbf{Monde} & 239\,000 & 250\,000 & 73\,000\,000 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Le Groupe OCP}
+Fondé en 1920 sous le nom d'Office Chérifien des Phosphates, le Groupe OCP exploite ces réserves de la mine jusqu'aux engrais~\cite{ocpwiki}. En 2025, son chiffre d'affaires a atteint environ 114 milliards de dirhams, en hausse de 17\,\% sur un an~\cite{ocpresultats2025}. Depuis 2014, un \textit{slurry pipeline} de 187~km relie Khouribga à la plateforme chimique de Jorf Lasfar : il transporte le phosphate sous forme de pulpe, ce qui économise plus de 3 millions de m\textsuperscript{3} d'eau par an par rapport au transport ferroviaire du minerai séché~\cite{ocppipeline}. Ce mode de transport rend d'autant plus importante la maîtrise de la granulométrie de la pulpe en amont, c'est-à-dire au broyage.
+
+\section{Le procédé étudié : un circuit de broyage en boucle fermée}
+
+\subsection{Rôle du broyage}
+Le broyage réduit la taille des particules pour libérer les grains de phosphate de leur gangue et amener le minerai à la finesse requise par les étapes suivantes (flottation, transport en pulpe). Il s'effectue en voie humide, dans un broyeur à boulets associé à une batterie d'hydrocyclones~\cite{wills2016}.
+
+\subsection{Équipements du circuit}
+Le circuit modélisé comporte quatre équipements, repérés par leur étiquette (\textit{tag}) dans la figure~\ref{fig:circuit} :
+\begin{itemize}
+  \item \textbf{PB\_001 -- le bac de pompage} (\textit{pump box}) reçoit la pulpe fraîche, l'eau d'appoint et la décharge du broyeur ;
+  \item \textbf{SP\_001 -- la pompe à pulpe} (\textit{slurry pump}), une pompe centrifuge qui alimente les hydrocyclones ;
+  \item \textbf{CY\_001 -- la batterie d'hydrocyclones} sépare les particules par la force centrifuge : les fines sortent par la surverse (\textit{overflow}) vers l'aval, les grossières par la sousverse (\textit{underflow}) vers le broyeur ;
+  \item \textbf{BM\_001 -- le broyeur à boulets} (\textit{ball mill}), un cylindre en rotation chargé de boulets d'acier qui fragmentent le minerai par impact et attrition~\cite{wills2016}.
+\end{itemize}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+  eq/.style={draw=bleu,thick,fill=bleuclair,font=\scriptsize\bfseries,align=center},
+  lbl/.style={font=\tiny\ttfamily,fill=white,draw=gris,rounded corners=1pt,inner sep=1.5pt},
+  ext/.style={draw=vert,thick,fill=vertclair,rounded corners=3pt,font=\scriptsize,align=center},
+  pipe/.style={-{Stealth[length=2mm]},thick,bleu}]
+  % Bac
+  \node[eq,trapezium,shape border rotate=180,trapezium stretches=true,minimum width=1.8cm,minimum height=1.2cm] (pb) at (0,0) {PB\_001\\Bac};
+  % Pompe
+  \node[eq,circle,minimum size=1.1cm] (sp) at (2.8,-1.8) {SP\_001\\Pompe};
+  % Cyclones
+  \node[eq,isosceles triangle,shape border rotate=-90,minimum height=1.3cm,minimum width=1.8cm,isosceles triangle stretches] (cy) at (5.2,2.4) {};
+  \node[font=\scriptsize\bfseries,bleu,anchor=east] at (4.1,3.2) {CY\_001 Hydrocyclones};
+  % Broyeur
+  \node[eq,rounded corners=4pt,minimum width=2.6cm,minimum height=1.2cm] (bm) at (9.2,0) {BM\_001\\Broyeur à boulets};
+  % Entrées / sortie
+  \node[ext] (in) at (-3,0.4) {Pulpe\\fraîche};
+  \node[ext,draw=bleu,fill=bleuclair] (eau) at (-3,-0.9) {Eau\\d'appoint};
+  \node[ext] (out) at (10,3.5) {Surverse\\vers l'aval};
+  % Flux
+  \draw[pipe] (in) -- node[lbl,above]{P\_001} (pb.north west |- in);
+  \draw[pipe] (eau) -| node[lbl,pos=0.3,below]{P\_101} (pb.south west);
+  \draw[pipe] (pb.south) |- node[lbl,pos=0.75,below]{P\_002} (sp.west);
+  \draw[pipe] (sp.north) |- node[lbl,pos=0.3,left]{P\_003} (cy.west);
+  \draw[pipe] (5.2,3.05) |- node[lbl,pos=0.7,above]{P\_006} (out.west);
+  \draw[pipe] (cy.south) |- node[lbl,pos=0.3,left]{P\_004} (bm.west);
+  \draw[pipe] (bm.east) -- ++(0.6,0) |- node[lbl,pos=0.75,below]{P\_005} (0,-3) -- (pb.south east);
+  \node[font=\tiny,gris] at (5.9,1.3) {sousverse};
+\end{tikzpicture}
+\caption{Schéma du circuit de broyage modélisé et repérage des lignes}
+\label{fig:circuit}
+\end{figure}
+
+\subsection{Indicateurs de performance}
+La finesse du produit est caractérisée par le \gls{p80}, taille d'ouverture de tamis laissant passer 80\,\% de la masse du matériau~\cite{wills2016}. Deux autres indicateurs sont suivis :
+\begin{itemize}
+  \item la \textbf{charge circulante}, rapport entre le débit solide de la sousverse renvoyée au broyeur et celui de la surverse ;
+  \item le \textbf{rapport de réduction}, rapport entre le P80 de l'alimentation et celui du produit.
+\end{itemize}
+La teneur en phosphate est exprimée en \gls{bpl}, c\'est-à-dire en pourcentage de phosphate tricalcique.
+
+\section{Problématique opérationnelle}
+Trois difficultés justifient ce projet :
+\begin{enumerate}
+  \item \textbf{Une qualité connue trop tard.} Le P80 est obtenu par analyse différée ou par un analyseur en ligne onéreux. Entre deux mesures, l'opérateur ne sait pas si le produit est dans la cible.
+  \item \textbf{Une maintenance réactive.} Les défaillances du broyeur (paliers, entraînement) sont précédées de signaux faibles, vibrations ou échauffements, qui restent noyés dans les écrans \gls{scada}.
+  \item \textbf{Une information dispersée.} Les mesures temps réel, l'historique, la topologie de l'usine et les bons de travail vivent dans des systèmes différents, ce qui rend le diagnostic long.
+\end{enumerate}
+
+\section{Conclusion}
+JESA, par son lien historique avec OCP, est bien placée pour porter la digitalisation des procédés de traitement du phosphate. Le circuit de broyage, énergivore et difficile à piloter faute de mesure continue de la qualité, constitue un bon candidat pour un jumeau numérique. Le chapitre suivant présente l'état de l'art sur lequel s'appuie la solution.

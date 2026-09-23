@@ -1,0 +1,14 @@
+# Fichiers de compilation LaTeX
+*.aux
+*.log
+*.toc
+*.lof
+*.lot
+*.out
+*.acn
+*.acr
+*.alg
+*.glg
+*.glo
+*.gls
+*.ist

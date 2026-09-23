@@ -1,0 +1,49 @@
+\begin{tikzpicture}[
+  n/.style={draw,rounded corners=2pt,fill=white,font=\scriptsize,align=center,minimum width=2.8cm,minimum height=0.9cm},
+  db/.style={cylinder,shape border rotate=90,aspect=0.2,draw,fill=white,font=\scriptsize,align=center,minimum width=2.5cm,minimum height=1.2cm},
+  zone/.style={draw,dashed,rounded corners=6pt,inner sep=7pt},
+  titre/.style={font=\footnotesize\bfseries,anchor=south west,inner sep=2pt},
+  f/.style={-{Stealth[length=2mm]},thick,gris},
+  lab/.style={font=\tiny,gris,fill=white,inner sep=1pt}]
+  % ---- 1. Sources
+  \node[n,draw=orange] (kep) at (0,1.2) {KEPServerEX\\45 tags simulés};
+  \node[n,draw=orange] (nr)  at (3.6,1.2) {Node-RED\\passerelle IIoT};
+  \node[n,draw=orange] (csv) at (0,-0.4) {Historiques CSV\\procédé + santé};
+  \node[n,draw=orange] (pub) at (3.6,-0.4) {Publieur Python\\relecture pilotable};
+  \draw[f] (kep)--node[lab,above=1pt]{OPC UA}(nr);
+  \draw[f] (csv)--(pub);
+  \node[zone,draw=orange,fit=(kep)(nr)(csv)(pub)] (z1) {};
+  \node[titre,text=orange] at (z1.north west) {1. Sources de télémétrie};
+  % ---- 2. Transport + traitement
+  \node[n,draw=bleu] (mq)  at (7.9,0.4) {Broker Mosquitto\\MQTT :1883};
+  \node[n,draw=bleu,minimum width=3.6cm] (api) at (12.8,0.4) {Backend FastAPI\\telemetry $\cdot$ simulation $\cdot$ assets\\knowledge\_graph $\cdot$ whatif $\cdot$ auth};
+  \draw[f] (nr.east) -- ++(0.5,0) |- ([yshift=2mm]mq.west);
+  \draw[f] (pub.east) -- ++(0.5,0) |- ([yshift=-2mm]mq.west);
+  \draw[f] (mq)--node[lab,above=2pt]{abonnement}(api);
+  \node[zone,draw=bleu,fit=(mq)(api)] (z2) {};
+  \node[titre,text=bleu] at (z2.north west) {2. Transport et traitement};
+  % ---- 3. Stockage
+  \node[db,draw=vert] (hist) at (9.6,-2.6) {Historien\\SQLite};
+  \node[db,draw=vert] (neo)  at (12.8,-2.6) {Neo4j\\(ou graphe mémoire)};
+  \node[db,draw=vert] (files) at (16.0,-2.6) {CSV de référence\\+ modèles joblib};
+  \draw[f] (api.south) -- (hist.north);
+  \draw[f] (api.south) -- (neo.north);
+  \draw[f] (api.south) -- (files.north);
+  \node[zone,draw=vert,fit=(hist)(neo)(files)] (z3) {};
+  \node[titre,text=vert] at (z3.north west) {3. Stockage};
+  % ---- 4. IA
+  \node[n,draw=rouge] (wi)  at (0.9,-2.6) {Simulateur What-If\\forêt aléatoire};
+  \node[n,draw=rouge] (rag) at (4.2,-2.6) {Copilote Graph RAG\\LLM + graphe};
+  \node[n,draw=rouge] (xgb) at (2.55,-4.0) {Capteur virtuel P80\\XGBoost (hors ligne)};
+  \node[zone,draw=rouge,fit=(wi)(rag)(xgb)] (z4) {};
+  \node[titre,text=rouge] at (z4.north west) {4. Intelligence artificielle};
+  \draw[f,<->] (z4.east) -- node[lab,above=2pt]{modèles, graphe, contexte} (z3.west);
+  % ---- 5. IHM
+  \node[n,draw=violet,minimum width=3.6cm] (react) at (12.8,-5.2) {Application React (SPA)};
+  \node[n,draw=violet,minimum width=2.4cm] (syn) at (10.1,-6.5) {Synoptique\\+ graphe};
+  \node[n,draw=violet,minimum width=2.4cm] (d3)  at (12.8,-6.5) {Vue 3D\\+ What-If};
+  \node[n,draw=violet,minimum width=2.4cm] (mt)  at (15.5,-6.5) {Maintenance\\+ copilote};
+  \node[zone,draw=violet,fit=(react)(syn)(d3)(mt)] (z5) {};
+  \node[titre,text=violet] at (z5.north west) {5. Interface utilisateur};
+  \draw[f,<->] (api.east) -- ++(3.0,0) |- node[lab,pos=0.25,right=1pt]{API REST + JWT} (react.east);
+\end{tikzpicture}

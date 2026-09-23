@@ -1,0 +1,119 @@
+\documentclass[12pt,a4paper,oneside]{report}
+
+% ---------------------------------------------------------------- Encodage & langue
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english,french]{babel}
+\addto\captionsfrench{\renewcommand{\tablename}{Tableau}\renewcommand{\listfigurename}{Liste des figures}\renewcommand{\listtablename}{Liste des tableaux}}
+\usepackage{lmodern}
+\usepackage{microtype}
+
+% ---------------------------------------------------------------- Mise en page
+\usepackage[a4paper,top=2.5cm,bottom=2.5cm,left=2.5cm,right=2.5cm,headheight=15pt]{geometry}
+\usepackage{setspace}
+\onehalfspacing
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\setlist{itemsep=2pt,topsep=4pt}
+
+% ---------------------------------------------------------------- Figures, tableaux
+\usepackage{graphicx}
+\graphicspath{{images/}}
+\usepackage{float}
+\usepackage[font=small,labelfont=bf]{caption}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage[table]{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,shapes.misc,fit,backgrounds,calc,shadows}
+\usepackage{listings}
+\renewcommand{\tabularxcolumn}[1]{>{\raggedright\arraybackslash}p{#1}}
+
+% ---------------------------------------------------------------- Liens & abréviations
+\usepackage{xurl}
+\usepackage[hidelinks,unicode]{hyperref}
+\usepackage[acronym,nonumberlist,nopostdot,toc]{glossaries}
+
+% ---------------------------------------------------------------- Couleurs du rapport
+\definecolor{bleu}{HTML}{1F4E79}
+\definecolor{bleuclair}{HTML}{DCE6F2}
+\definecolor{vert}{HTML}{2E7D32}
+\definecolor{vertclair}{HTML}{E8F5E9}
+\definecolor{orange}{HTML}{E65100}
+\definecolor{orangeclair}{HTML}{FFF3E0}
+\definecolor{rouge}{HTML}{B71C1C}
+\definecolor{rougeclair}{HTML}{FFEBEE}
+\definecolor{gris}{HTML}{555555}
+\definecolor{grisclair}{HTML}{F2F2F2}
+
+% Marqueur pour les éléments à compléter avec les vrais résultats
+\newcommand{\AFAIRE}[1]{\textcolor{red}{\textbf{[À compléter : #1]}}}
+
+% ---------------------------------------------------------------- Titres
+\titleformat{\chapter}[display]
+  {\normalfont\bfseries\color{bleu}}
+  {\LARGE\chaptertitlename\ \thechapter}{8pt}{\Huge}
+\titlespacing*{\chapter}{0pt}{0pt}{30pt}
+\titleformat{\section}{\normalfont\Large\bfseries\color{bleu}}{\thesection}{1em}{}
+\titleformat{\subsection}{\normalfont\large\bfseries}{\thesubsection}{1em}{}
+
+% ---------------------------------------------------------------- En-têtes
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\chaptermark}[1]{\markboth{\chaptername\ \thechapter.\ #1}{}}
+\fancyhead[L]{\small\textsc{\nouppercase{\leftmark}}}
+\fancyhead[R]{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\fancypagestyle{plain}{\fancyhf{}\fancyfoot[C]{\small\thepage}\renewcommand{\headrulewidth}{0pt}}
+
+% Chapitre non numéroté : titre, entrée au sommaire et en-tête corrects
+\newcommand{\chapitresansnumero}[1]{%
+  \chapter*{#1}\addcontentsline{toc}{chapter}{#1}\markboth{#1}{#1}}
+
+% ---------------------------------------------------------------- Code
+\lstset{basicstyle=\ttfamily\small,frame=single,backgroundcolor=\color{grisclair},
+  numbers=left,numberstyle=\tiny\color{gris},breaklines=true,columns=fullflexible,
+  keepspaces=true,showstringspaces=false}
+\renewcommand{\lstlistingname}{Code}
+
+% ---------------------------------------------------------------- Styles TikZ communs
+\tikzset{
+  boite/.style={draw=bleu,rounded corners=3pt,fill=bleuclair,align=center,
+                font=\small,inner sep=5pt,minimum height=0.9cm},
+  fleche/.style={-{Stealth[length=2.5mm]},thick,color=gris},
+}
+
+\makeglossaries
+\input{abreviations}
+
+\begin{document}
+
+\input{chapitres/00_garde}
+
+\pagenumbering{roman}
+\input{chapitres/01_liminaires}
+\glsresetall\glsunset{p80}
+
+\tableofcontents
+\listoffigures
+\listoftables
+\printglossary[type=\acronymtype,title={Liste des abréviations}]
+
+\cleardoublepage
+\pagenumbering{arabic}
+
+\input{chapitres/02_introduction}
+\input{chapitres/03_contexte}
+\input{chapitres/04_etat_art}
+\input{chapitres/05_besoins}
+\input{chapitres/06_architecture}
+\input{chapitres/07_realisation}
+\input{chapitres/08_conclusion}
+
+\input{chapitres/09_bibliographie}
+
+\end{document}

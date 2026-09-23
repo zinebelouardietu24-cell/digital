@@ -1,0 +1,38 @@
+\chapter*{Remerciements}
+\markboth{Remerciements}{Remerciements}
+
+Ce rapport est l'aboutissement de plusieurs semaines de travail au sein de JESA, et je souhaite remercier ici celles et ceux qui l'ont rendu possible.
+
+Je remercie en premier lieu \textbf{M. Abdelkader Es-Sallami}, mon encadrant à JESA, pour la confiance qu'il m'a accordée en me confiant un sujet aussi riche que le jumeau numérique d'un circuit de broyage, ainsi que pour sa disponibilité et la justesse de ses conseils tout au long du stage.
+
+J'adresse également mes sincères remerciements à \AFAIRE{nom de l'encadrant}, mon encadrant pédagogique à l'École Nationale Supérieure d'Électricité et de Mécanique (ENSEM) de Casablanca, pour son suivi attentif et ses remarques qui ont contribué à structurer ce travail.
+
+Je remercie mon binôme ainsi que l'ensemble de l'équipe Digital de JESA pour leur accueil, leur patience et la qualité des échanges techniques qui m'ont permis de mieux comprendre le fonctionnement réel d'un circuit de traitement du phosphate.
+
+Je tiens enfin à exprimer ma reconnaissance à ma famille pour son soutien constant, ainsi qu'aux membres du jury qui ont accepté d'évaluer ce travail.
+
+\chapter*{Résumé}
+\markboth{Résumé}{Résumé}
+
+Le broyage est l'une des étapes les plus énergivores du traitement des minerais : la comminution représente environ la moitié de l'énergie consommée dans une mine~\cite{jeswiet2016}. Dans un circuit fermé broyeur à boulets -- hydrocyclones, la qualité du produit est jugée sur sa granulométrie (P80), une grandeur rarement mesurée en continu. Ce projet, réalisé au sein de JESA, propose une preuve de concept de \textbf{jumeau numérique} pour un tel circuit de broyage de phosphate.
+
+La télémétrie provient de deux sources, toutes deux publiées sur un broker MQTT : la relecture des historiques du procédé, et une chaîne industrielle KEPServerEX (OPC UA) -- Node-RED qui transmet 45 tags simulés. Un backend FastAPI, organisé en domaines, aligne des flux acquis à des fréquences différentes, calcule les indicateurs dérivés et enregistre chaque message dans un historien SQLite, ce qui rend l'historique persistant. Un graphe de connaissances de 69 nœuds relie équipements, capteurs, lignes, modes de défaillance et bons de travail.
+
+Trois briques d'intelligence artificielle complètent le système : un simulateur What-If fondé sur une forêt aléatoire multi-sorties (8 entrées, 23 sorties), un copilote conversationnel Graph RAG, et un capteur virtuel XGBoost du P80. Évalué sur une période de test chronologique, ce capteur atteint $R^2 = 0{,}953$ pour une erreur absolue moyenne de 0,66~µm. Une application React restitue l'ensemble sous forme de synoptique animé, de vue 3D, de graphe interactif et de tableau de bord de maintenance.
+
+\medskip
+\noindent\textbf{Mots-clés :} jumeau numérique, broyage, phosphate, IIoT, OPC UA, MQTT, capteur virtuel, XGBoost, simulation What-If, Graph RAG.
+
+\chapter*{Abstract}
+\markboth{Abstract}{Abstract}
+\begin{otherlanguage}{english}
+
+Grinding is one of the most energy-intensive steps in mineral processing: comminution accounts for roughly half of the energy used in a mine~\cite{jeswiet2016}. In a closed ball mill -- hydrocyclone circuit, product quality is judged by its particle size (P80), a variable that is rarely measured online. This project, carried out at JESA, delivers a \textbf{digital twin} proof of concept for a phosphate grinding circuit.
+
+Telemetry comes from two sources, both published to an MQTT broker: a replay of plant history, and an industrial KEPServerEX (OPC UA) -- Node-RED chain that streams 45 simulated tags. A domain-driven FastAPI backend aligns streams sampled at different rates, computes derived indicators and stores every message in a SQLite historian, which makes the history persistent. A 69-node knowledge graph links equipment, sensors, streams, failure modes and work orders.
+
+Three artificial intelligence components complete the system: a What-If simulator based on a multi-output random forest (8 inputs, 23 outputs), a Graph RAG conversational copilot, and an XGBoost soft sensor for P80. Evaluated on a chronological test period, this soft sensor reaches $R^2 = 0.953$ with a mean absolute error of 0.66~µm. A React application presents everything as an animated flowsheet, a 3D view, an interactive graph and a maintenance dashboard.
+
+\medskip
+\noindent\textbf{Keywords:} digital twin, grinding, phosphate, IIoT, OPC UA, MQTT, soft sensor, XGBoost, What-If simulation, Graph RAG.
+\end{otherlanguage}

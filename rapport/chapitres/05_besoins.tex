@@ -1,0 +1,103 @@
+\chapter{Analyse et spécification des besoins}
+\label{chap:besoins}
+
+\section{Introduction}
+Ce chapitre délimite le périmètre du prototype. Il identifie les acteurs, liste les besoins fonctionnels et non fonctionnels, puis les synthétise dans un diagramme de cas d'utilisation \gls{uml}.
+
+\section{Acteurs}
+L'accès au système est authentifié. Trois profils sont définis dans l'application (tableau~\ref{tab:acteurs}), et chacun dispose d'un compte de démonstration.
+
+\begin{table}[H]
+\centering
+\caption{Acteurs du système et leurs attentes}
+\label{tab:acteurs}
+\begin{tabularx}{\textwidth}{l X}
+\toprule
+\textbf{Acteur (rôle applicatif)} & \textbf{Rôle et attentes} \\
+\midrule
+Opérateur (\textit{Plant Operator}) & Surveille le circuit en temps réel ; a besoin d'une vue claire des débits, de l'état des équipements et des alarmes. \\
+Ingénieur procédé (\textit{Process Engineer}) & Analyse la performance et prépare les réglages : consulte les indicateurs dérivés, le graphe de connaissances, l'historique de maintenance, et teste des scénarios dans le simulateur What-If. \\
+Directeur d'usine (\textit{Plant Director}) & Vue d'ensemble de la fiabilité des actifs ; administre les accès. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Besoins fonctionnels}
+\begin{table}[H]
+\centering
+\caption{Besoins fonctionnels}
+\label{tab:bf}
+\begin{tabularx}{\textwidth}{c l X}
+\toprule
+\textbf{Réf.} & \textbf{Module} & \textbf{Description} \\
+\midrule
+BF1 & Authentification & Se connecter avec un compte et un rôle ; les pages sont protégées par jeton. \\
+BF2 & Acquisition & Recevoir la télémétrie de deux sources : la relecture des historiques et la chaîne KEPServerEX -- Node-RED (OPC UA), toutes deux via MQTT. \\
+BF3 & Simulation & Piloter la relecture : démarrer, mettre en pause, arrêter, changer la vitesse (1$\times$ à 600$\times$). \\
+BF4 & Synoptique & Afficher le schéma du circuit avec animation des flux ; ouvrir la fiche d'un équipement avec ses mesures et ses indicateurs dérivés. \\
+BF5 & Graphe de connaissances & Explorer les liens entre équipements, lignes, capteurs, modes de défaillance et bons de travail ; filtrer et tracer un chemin de cause à effet. \\
+BF6 & Vue 3D & Représenter le circuit en 3D avec les valeurs clés de chaque équipement. \\
+BF7 & Maintenance & Afficher les indicateurs de fiabilité (MTBF, MTTR, criticité, échéances) et l'historique des interventions de chaque équipement. \\
+BF8 & Simulateur What-If & Faire varier les entrées du procédé et prédire l'effet sur 23 grandeurs aval, avec la fiabilité ($R^2$) de chaque prédiction. \\
+BF9 & Copilote IA & Répondre en langage naturel à des questions sur le circuit, en s'appuyant sur le graphe, la télémétrie et l'historique de maintenance. \\
+BF10 & Historique & Conserver toute la télémétrie reçue et permettre sa consultation et son export. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Besoins non fonctionnels}
+\begin{table}[H]
+\centering
+\caption{Besoins non fonctionnels et critères de vérification}
+\label{tab:bnf}
+\begin{tabularx}{\textwidth}{c l X}
+\toprule
+\textbf{Réf.} & \textbf{Exigence} & \textbf{Critère} \\
+\midrule
+BNF1 & Ergonomie & Interface conforme aux principes ISA-101~\cite{isa101} : fond neutre, couleurs vives réservées aux états anormaux. \\
+BNF2 & Persistance & Aucune perte de télémétrie lors d'un redémarrage du backend, de Docker ou du poste. \\
+BNF3 & Résilience & Fonctionnement dégradé sans service externe : graphe en mémoire si Neo4j est indisponible, réponse locale du copilote si l'API de LLM ne répond pas. \\
+BNF4 & Sécurité & Authentification par jeton \gls{jwt}, mots de passe hachés, secrets hors du dépôt de code. \\
+BNF5 & Évolutivité & Ajout d'un capteur par simple ligne dans le registre des tags, sans modifier le code. \\
+BNF6 & Maintenabilité & Backend découpé en domaines indépendants ; services conteneurisés ; tests automatisés. \\
+BNF7 & Interopérabilité & Protocoles standards : OPC UA~\cite{iec62541} côté terrain, MQTT~\cite{mqtt5} côté transport. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Diagramme de cas d'utilisation}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+  uc/.style={ellipse,draw=bleu,fill=bleuclair,minimum width=4.6cm,minimum height=0.8cm,font=\scriptsize,align=center,inner sep=1pt},
+  act/.style={font=\scriptsize\bfseries,align=center},
+  lien/.style={thin}]
+  \draw[rounded corners,dashed,gris,fill=grisclair!50] (-2.8,-0.5) rectangle (2.8,10.3);
+  \node[font=\small\bfseries,bleu] at (0,9.95) {Jumeau numérique};
+  \foreach \y/\n/\t in {9.2/u1/S'authentifier, 8.2/u2/Superviser le synoptique, 7.2/u3/Consulter la fiche d'un équipement,
+                        6.2/u4/Consulter la vue 3D, 5.2/u5/Explorer le graphe, 4.2/u6/Suivre la maintenance,
+                        3.2/u7/Simuler un réglage (What-If), 2.2/u8/Interroger le copilote IA,
+                        1.2/u9/Piloter la simulation, 0.2/u10/Administrer les accès}
+    \node[uc] (\n) at (0,\y) {\t};
+  \newcommand{\bonhomme}[2]{
+    \draw[thick] (#1) ++(0,0.35) circle (0.18);
+    \draw[thick] (#1) ++(0,0.17) -- ++(0,-0.5) ++(0,0) -- ++(-0.2,-0.35) ++(0.2,0.35) -- ++(0.2,-0.35);
+    \draw[thick] (#1) ++(-0.28,-0.05) -- ++(0.56,0);
+    \node[act,below] at ($(#1)+(0,-0.75)$) {#2};}
+  \coordinate (op) at (-5.4,7.4);  \bonhomme{op}{Opérateur}
+  \coordinate (ing) at (-5.4,2.8); \bonhomme{ing}{Ingénieur\\procédé}
+  \coordinate (adm) at (5.4,4.8);  \bonhomme{adm}{Directeur\\d'usine}
+  \draw[-{Latex},thick] ($(ing)+(0,0.7)$) -- node[left,font=\tiny]{hérite} ($(op)+(0,-1.2)$);
+  \foreach \u in {u1,u2,u3,u4,u5,u6} \draw[lien] ($(op)+(0.3,0)$) -- (\u.west);
+  \foreach \u in {u7,u8,u9} \draw[lien] ($(ing)+(0.3,0)$) -- (\u.west);
+  \foreach \u in {u1,u6,u10} \draw[lien] ($(adm)+(-0.3,0)$) -- (\u.east);
+\end{tikzpicture}
+\caption{Diagramme de cas d'utilisation}
+\label{fig:usecase}
+\end{figure}
+
+L'ingénieur hérite des cas d'utilisation de l'opérateur et y ajoute l'analyse : simulation de réglages, copilote IA et pilotage de la relecture. Le directeur d'usine suit la fiabilité des actifs et gère les accès.
+
+\section{Conclusion}
+Les besoins sont désormais formalisés, et chacun est associé à un critère vérifiable. Le chapitre suivant présente l'architecture conçue pour y répondre.

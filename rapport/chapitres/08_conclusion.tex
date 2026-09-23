@@ -1,0 +1,25 @@
+\chapitresansnumero{Conclusion générale et perspectives}
+
+Ce projet de fin d'année visait à concevoir, au sein de JESA, une preuve de concept de jumeau numérique pour un circuit de broyage de phosphate. Trois difficultés avaient été identifiées : une qualité produit connue trop tard, une maintenance réactive et une information dispersée.
+
+La solution y répond par une architecture en cinq couches.
+\begin{itemize}
+  \item \textbf{Acquisition.} Une chaîne industrielle KEPServerEX -- Node-RED (OPC UA) et une relecture des historiques publient 45 signaux sur un broker MQTT commun.
+  \item \textbf{Traitement et stockage.} Un backend FastAPI organisé en domaines fusionne des flux acquis à des rythmes différents, calcule les bilans de matière et enregistre toute la télémétrie dans un historien SQLite. L'historique survit ainsi à un arrêt du poste.
+  \item \textbf{Information métier.} Un graphe de connaissances de 69 nœuds relie équipements, capteurs, lignes, modes de défaillance et interventions de maintenance.
+  \item \textbf{Intelligence artificielle.} Le simulateur What-If anticipe l'effet d'un réglage sur 23 grandeurs aval, et le copilote Graph RAG répond en langage naturel, même hors connexion. Enfin, le capteur virtuel XGBoost estime le P80 avec un $R^2$ de 0,953 et une erreur moyenne de 0,66~µm, sur une période de test qu'il n'avait jamais vue.
+\end{itemize}
+
+Sur le plan personnel, ce stage m'a permis de confronter ma formation d'ingénieure à la réalité d'un procédé industriel, de l'automate jusqu'au tableau de bord. J'ai découvert que la valeur d'une donnée dépend autant de sa compréhension physique (ce que représente un P80, pourquoi un palier chauffe) que de la rigueur avec laquelle on l'évalue. Un découpage chronologique ou aléatoire peut à lui seul changer la conclusion que l'on tire d'un modèle.
+
+\section*{Perspectives}
+Les limites relevées à la section~\ref{sec:limites} dessinent la suite du travail :
+\begin{itemize}
+  \item \textbf{Capteur virtuel en temps réel.} Brancher le modèle XGBoost sur le flux MQTT et republier le P80 estimé comme un tag à part entière.
+  \item \textbf{Évaluation rigoureuse du What-If.} Réentraîner le simulateur avec un découpage chronologique sur des données agrégées à 15 minutes, comme pour le capteur virtuel, afin d'obtenir une mesure non biaisée de sa précision.
+  \item \textbf{Validation sur site réel.} Connecter Node-RED aux automates d'une installation OCP et entraîner les modèles sur l'historique réel accumulé par l'historien.
+  \item \textbf{Surveillance des modèles.} Détecter la dérive du procédé (dureté du minerai, usure) et déclencher le réentraînement des modèles~\cite{kadlec2009}.
+  \item \textbf{Détection d'anomalies.} Exploiter l'historique des signaux de santé pour détecter automatiquement les comportements anormaux du broyeur et de la pompe.
+  \item \textbf{Vers un vrai jumeau.} Proposer des consignes validées par l'opérateur, puis, à terme, fermer la boucle de régulation~\cite{kritzinger2018}.
+  \item \textbf{Modèles hybrides.} Coupler les modèles orientés données à des modèles physiques du broyage et de la classification~\cite{wills2016}.
+\end{itemize}

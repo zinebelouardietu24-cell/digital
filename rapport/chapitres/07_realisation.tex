@@ -1,0 +1,226 @@
+\chapter{Réalisation et résultats}
+\label{chap:realisation}
+
+\section{Introduction}
+Ce chapitre présente l'environnement de développement et les interfaces réalisées, puis l'évaluation chiffrée du prototype. Il se termine par une analyse honnête de ses limites. Toutes les captures d'écran ont été prises sur l'application en fonctionnement.
+
+\section{Environnement technique}
+
+\begin{table}[H]
+\centering
+\caption{Technologies utilisées}
+\label{tab:techno}
+\begin{tabularx}{\textwidth}{l X}
+\toprule
+\textbf{Domaine} & \textbf{Outils} \\
+\midrule
+Acquisition & KEPServerEX V6 (OPC UA)~\cite{kepware}, Node-RED et \texttt{node-red-contrib-opcua}~\cite{nodered} \\
+Transport & Eclipse Mosquitto 2.0 (MQTT)~\cite{mqtt5}, paho-mqtt \\
+Back-end & Python, FastAPI~\cite{fastapi}, pandas, PyJWT, bcrypt \\
+Stockage & SQLite~\cite{sqlite}, Neo4j 5~\cite{neo4j}, fichiers CSV \\
+Apprentissage & scikit-learn~\cite{sklearn}, XGBoost~\cite{chen2016}, joblib \\
+IA générative & API Google Gemini, Graph RAG~\cite{edge2024} \\
+Front-end & React 19~\cite{react}, Vite, React Three Fiber~\cite{r3f}, vis-network, Recharts \\
+Déploiement & Docker Compose~\cite{merkel2014} : 5 services (broker, Neo4j, backend, publieur, frontend) \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Interfaces réalisées}
+
+\subsection{Authentification}
+L'accès passe par une page de connexion (figure~\ref{fig:login}). Le backend vérifie le mot de passe haché avec bcrypt, puis délivre un jeton \gls{jwt} valable 8 heures. Chaque page de l'application est protégée : sans jeton valide, l'utilisateur est renvoyé vers la connexion.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{app_login}
+\caption{Page de connexion, avec les trois profils de démonstration}
+\label{fig:login}
+\end{figure}
+
+\subsection{Synoptique et graphe de connaissances}
+La vue principale juxtapose le schéma du circuit et le graphe de connaissances (figure~\ref{fig:home}). Une barre de pilotage permet de lancer la relecture et de choisir sa vitesse. Elle donne aussi accès aux panneaux de chaque source de données et au simulateur What-If.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{app_home}
+\caption{Vue double : synoptique du circuit (à gauche) et graphe de connaissances (à droite)}
+\label{fig:home}
+\end{figure}
+
+Pendant la relecture, les lignes s'animent selon les débits reçus, et chaque équipement s'illumine selon son état (figure~\ref{fig:flowsheet}).
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{app_flowsheet_full}
+\caption{Synoptique en plein écran pendant la relecture}
+\label{fig:flowsheet}
+\end{figure}
+
+\subsection{Fiche d'un équipement}
+Un clic sur un équipement ouvre sa fiche (figure~\ref{fig:drawer}). Pour le broyeur BM\_001, elle affiche :
+\begin{itemize}
+  \item la télémétrie en direct : puissance, courant, vitesse, températures des paliers, vibration, niveau sonore ;
+  \item les indicateurs dérivés calculés par le backend : réduction de taille, débits entrant et sortant, écart de débit.
+\end{itemize}
+Le graphe se centre alors automatiquement sur cet équipement et met en évidence ses liens : capteurs (\texttt{MONITORS}), lignes (\texttt{FEEDS\_INTO}, \texttt{DISCHARGES\_TO}) et risques (\texttt{RISKS}).
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{app_drawer_bm}
+\caption{Fiche du broyeur BM\_001 : télémétrie en direct, indicateurs dérivés et voisinage dans le graphe}
+\label{fig:drawer}
+\end{figure}
+
+Le graphe de connaissances compte \textbf{69 nœuds et 129 relations}, répartis ainsi :
+\begin{itemize}
+  \item 6 équipements, 7 lignes et 15 capteurs ;
+  \item 6 modes de défaillance ;
+  \item 29 bons de travail et 6 techniciens.
+\end{itemize}
+Des filtres isolent chaque famille de nœuds, et un mode de parcours trace le chemin d'une cause à ses effets.
+
+\subsection{Simulateur What-If}
+Le panneau What-If (figure~\ref{fig:whatif}) propose un curseur pour chacune des 8 entrées réglables. À chaque modification, il affiche pour chaque grandeur aval :
+\begin{itemize}
+  \item la valeur actuelle et la valeur prédite ;
+  \item l'écart entre les deux ;
+  \item le $R^2$ du modèle sur cette grandeur. Un badge orange signale une prédiction moins fiable, par exemple sur les pressions des cyclones.
+\end{itemize}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{app_whatif}
+\caption{Simulateur What-If : entrées réglables et prédictions comparées à l'état actuel}
+\label{fig:whatif}
+\end{figure}
+
+\subsection{Vue 3D}
+La vue 3D (figure~\ref{fig:3d}) reproduit l'implantation du circuit : bac, pompe, batterie de trois hydrocyclones, broyeur et tuyauteries. Au-dessus de chaque équipement, une étiquette affiche sa grandeur clé en direct : niveau du bac, pression de refoulement de la pompe, débit d'alimentation des cyclones, puissance du broyeur.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{app_view3d}
+\caption{Vue 3D du circuit réalisée avec React Three Fiber}
+\label{fig:3d}
+\end{figure}
+
+\subsection{Maintenance et fiabilité}
+La page de maintenance (figure~\ref{fig:maint}) résume l'état du parc : nombre d'équipements, interventions en retard, équipements critiques et MTBF moyen. Elle donne aussi accès à chaque équipement, avec le nombre de jours restant avant sa prochaine intervention. La fiche détaillée (figure~\ref{fig:maintpump}) présente :
+\begin{itemize}
+  \item les données constructeur de l'équipement ;
+  \item la dernière intervention et la prochaine échéance ;
+  \item l'état de l'équipement, avec son MTBF et son MTTR ;
+  \item l'état de ses composants critiques.
+\end{itemize}
+Un lien ouvre l'historique complet des interventions (31 bons de travail au total).
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{app_maintenance}
+\caption{Tableau de bord de maintenance et de fiabilité}
+\label{fig:maint}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{app_maintenance_pump}
+\caption{Fiche de maintenance de la pompe SP\_001 (criticité haute, revêtement d'usure à remplacer)}
+\label{fig:maintpump}
+\end{figure}
+
+\subsection{Copilote IA}
+Le copilote (figure~\ref{fig:copilot}) est une fenêtre flottante disponible sur toutes les pages. Il propose des questions types, et chaque réponse indique le moteur utilisé et le nombre d'entités du graphe mobilisées. Dans l'exemple ci-dessous, pris hors connexion à l'API Gemini, le moteur local a construit sa réponse à partir de 15 entités. On y retrouve la vitesse du broyeur (74,05\,\% de la vitesse critique), sa puissance (1\,818~kW) et la réduction de taille réalisée.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{app_copilot}
+\caption{Copilote Graph RAG : réponse sur l'état du broyeur BM\_001}
+\label{fig:copilot}
+\end{figure}
+
+\section{Évaluation}
+
+\input{chapitres/07b_xgboost}
+
+\subsection{Simulateur What-If}
+Le tableau~\ref{tab:whatif} regroupe par famille les $R^2$ que le backend calcule pour chacune des 23 sorties du simulateur. Ces scores sont obtenus sur 20\,\% des données tirés au hasard.
+
+\begin{table}[H]
+\centering
+\caption{Précision du simulateur What-If ($R^2$ par sortie, découpage aléatoire 80/20)}
+\label{tab:whatif}
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{4.6cm} c X}
+\toprule
+\textbf{Famille de sorties} & \textbf{$R^2$} & \textbf{Détail} \\
+\midrule
+Débits, teneurs et P80 (cyclones, broyeur, surverse) & 0,90 -- 1,00 & 12 sorties ; P80 de décharge du broyeur : 0,902 \\
+Indicateurs de circuit & 0,996 -- 1,000 & Charge circulante, rapport de réduction \\
+Santé du broyeur & 0,66 -- 0,78 & Puissance 0,754 ; courant 0,743 ; paliers 0,764--0,779 ; vibration 0,661 \\
+Santé de la pompe & 0,67 -- 0,68 & Puissance 0,666 ; pression de refoulement 0,684 \\
+Pressions des cyclones & 0,58 -- 0,60 & Pression d'entrée 0,596 ; pression différentielle 0,579 \\
+\midrule
+\textbf{Ensemble (23 sorties)} & \textbf{0,874} & Médiane 0,996 ; 13 sorties au-dessus de 0,95 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\paragraph{Analyse critique.} Les signaux de santé et de pression sont prédits nettement moins bien que les grandeurs de procédé. Ils dépendent en effet de phénomènes que les 8 entrées ne décrivent pas : usure, bruit de mesure, dynamique propre des équipements. L'interface le signale avec un badge de fiabilité. À l'inverse, les $R^2$ proches de 1 obtenus sur les grandeurs de procédé sont \textbf{optimistes}. Le modèle est entraîné sur l'historique fusionné par jointure temporelle, où chaque mesure de procédé est répétée sur 15 lignes consécutives (section~\ref{sec:asymetrie}). Un découpage aléatoire place donc dans le jeu de test des lignes presque identiques à des lignes d'entraînement. Le capteur XGBoost de la section~\ref{sec:xgboost} évite ce biais grâce à un découpage chronologique et à une agrégation à 15 minutes. Appliquer ce même protocole au simulateur What-If est une amélioration directe, décrite dans les perspectives.
+
+\subsection{Persistance des données}
+L'historien a été vérifié par des tests automatisés qui simulent un arrêt complet (tableau~\ref{tab:histtests}). La suite de tests du backend (15 tests) passe entièrement.
+
+\begin{table}[H]
+\centering
+\caption{Vérification de l'historien de télémétrie}
+\label{tab:histtests}
+\begin{tabularx}{\textwidth}{X c}
+\toprule
+\textbf{Scénario de test} & \textbf{Résultat} \\
+\midrule
+251 messages reçus, arrêt, puis redémarrage de l'historien : les 251 lignes sont retrouvées & Réussi \\
+Après redémarrage, les 100 derniers messages de chaque tag sont restaurés en mémoire & Réussi \\
+Démarrage de l'API, réception de 30 messages Node-RED, arrêt complet puis redémarrage : 30 lignes conservées, historique restauré & Réussi \\
+Requête filtrée par tag et export CSV par l'API & Réussi \\
+Valeur non numérique : conservée dans le message JSON, sans erreur & Réussi \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Vérification des besoins}
+\begin{table}[H]
+\centering
+\caption{Couverture des besoins fonctionnels}
+\label{tab:couverture}
+\begin{tabular}{llc}
+\toprule
+\textbf{Réf.} & \textbf{Besoin} & \textbf{Statut} \\
+\midrule
+BF1 & Authentification et rôles & \textcolor{vert}{Réalisé} \\
+BF2 & Acquisition (relecture + OPC UA/Node-RED) & \textcolor{vert}{Réalisé} \\
+BF3 & Pilotage de la simulation & \textcolor{vert}{Réalisé} \\
+BF4 & Synoptique et fiches équipements & \textcolor{vert}{Réalisé} \\
+BF5 & Graphe de connaissances & \textcolor{vert}{Réalisé} \\
+BF6 & Vue 3D & \textcolor{vert}{Réalisé} \\
+BF7 & Maintenance et fiabilité & \textcolor{vert}{Réalisé} \\
+BF8 & Simulateur What-If & \textcolor{vert}{Réalisé} \\
+BF9 & Copilote IA & \textcolor{vert}{Réalisé} \\
+BF10 & Historique persistant & \textcolor{vert}{Réalisé} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Limites}
+\label{sec:limites}
+Une évaluation honnête du prototype conduit à relever plusieurs limites :
+\begin{itemize}
+  \item \textbf{Données simulées.} Les deux sources proviennent de données simulées (qualité \texttt{SIM} dans les messages). Les performances des modèles devront être confirmées sur des mesures réelles, plus bruitées et plus lacunaires.
+  \item \textbf{Évaluation optimiste du What-If.} Comme on l'a vu plus haut, son découpage aléatoire surestime la précision sur les grandeurs de procédé.
+  \item \textbf{Capteur virtuel hors ligne.} Le modèle XGBoost est entraîné et évalué, mais il n'est pas encore branché sur le flux temps réel du backend.
+  \item \textbf{Absence de boucle de retour automatique.} Au sens de Kritzinger \textit{et al.}~\cite{kritzinger2018}, le système est une ombre numérique : il n'agit pas sur le procédé.
+  \item \textbf{Pas de modèle physique.} Les modèles sont orientés données. Ils n'extrapolent pas en dehors des régimes observés dans l'historique.
+  \item \textbf{Dépendance à un service externe.} Le copilote privilégie une API de LLM hébergée, ce qui pose des questions de confidentialité en milieu industriel. Le moteur local de secours n'en atténue qu'en partie l'impact.
+\end{itemize}
+
+\section{Conclusion}
+Le prototype couvre l'ensemble des besoins fonctionnels identifiés, de l'acquisition OPC UA jusqu'à l'aide à la décision. Le capteur virtuel atteint une précision de l'ordre du bruit de mesure, l'historique survit désormais aux redémarrages, et les limites relevées tracent directement la feuille de route présentée en conclusion.

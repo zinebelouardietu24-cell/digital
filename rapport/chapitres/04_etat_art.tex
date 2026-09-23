@@ -1,0 +1,133 @@
+\chapter{État de l'art}
+\label{chap:etatart}
+
+\section{Introduction}
+Ce chapitre présente les notions sur lesquelles repose le projet : le jumeau numérique, ses modèles de référence et ses bénéfices attendus, puis les techniques d'intelligence artificielle retenues pour estimer la granulométrie, détecter les anomalies et assister l'utilisateur.
+
+\section{Le jumeau numérique}
+
+\subsection{Origine et définition}
+Le concept a été formulé par Michael Grieves au début des années 2000, dans le cadre d'un cours sur la gestion du cycle de vie des produits, sous la forme d'un triptyque : un produit physique, son homologue virtuel, et les flux de données qui les relient~\cite{grieves2017}. La NASA et l'US Air Force l'ont ensuite popularisé en le définissant comme une simulation multi-physique et probabiliste d'un véhicule, alimentée par l'historique et les capteurs de l'appareil réel, afin d'en refléter l'état à tout instant~\cite{glaessgen2012}.
+
+\subsection{Modèle, ombre ou jumeau : l'importance de l'automatisation des échanges}
+Le terme est souvent employé de façon large. Kritzinger \textit{et al.} distinguent trois niveaux selon le degré d'automatisation des échanges entre l'objet physique et sa représentation~\cite{kritzinger2018} (tableau~\ref{tab:kritzinger}).
+
+\begin{table}[H]
+\centering
+\caption{Distinction entre modèle, ombre et jumeau numérique, d'après~\cite{kritzinger2018}}
+\label{tab:kritzinger}
+\begin{tabularx}{\textwidth}{lXX}
+\toprule
+\textbf{Niveau} & \textbf{Physique $\rightarrow$ virtuel} & \textbf{Virtuel $\rightarrow$ physique} \\
+\midrule
+Modèle numérique (\textit{Digital Model}) & Manuel & Manuel \\
+Ombre numérique (\textit{Digital Shadow}) & Automatique & Manuel \\
+Jumeau numérique (\textit{Digital Twin}) & Automatique & Automatique \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Selon cette grille, le prototype réalisé dans ce projet est, au sens strict, une \textbf{ombre numérique enrichie} : les données remontent automatiquement de l'usine vers le modèle, mais le retour vers le procédé passe par une décision humaine (l'opérateur ou l'ingénieur). Nous employons néanmoins le terme de jumeau numérique, conformément à l'usage industriel, tout en gardant cette nuance à l'esprit (voir la section~\ref{sec:limites}).
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}
+  \node[boite,minimum width=4cm,minimum height=1.6cm] (phy) at (0,0) {\textbf{Système physique}\\Bac, pompe, cyclones, broyeur};
+  \node[boite,minimum width=4cm,minimum height=1.6cm,draw=vert,fill=vertclair] (vir) at (8,0) {\textbf{Représentation virtuelle}\\Modèles, IA, visualisation};
+  \draw[fleche,bleu,line width=1.2pt] (phy.north) to[bend left=30] node[above,font=\small,align=center]{\textbf{Données}\\capteurs, automates, temps réel} (vir.north);
+  \draw[fleche,vert,line width=1.2pt] (vir.south) to[bend left=30] node[below,font=\small,align=center]{\textbf{Informations et décisions}\\alertes, estimations, recommandations} (phy.south);
+\end{tikzpicture}
+\caption{Boucle d'échange entre le système physique et sa représentation virtuelle}
+\label{fig:boucle}
+\end{figure}
+
+\subsection{Le modèle à cinq dimensions}
+Tao \textit{et al.} ont proposé de décrire un jumeau numérique selon cinq dimensions~\cite{tao2018,tao2019} :
+\begin{enumerate}
+  \item l'\textbf{entité physique} : ici, les équipements du circuit et leurs capteurs ;
+  \item l'\textbf{entité virtuelle} : les modèles qui la représentent (géométrie 3D, bilans, modèles d'apprentissage) ;
+  \item les \textbf{services} : ce que le jumeau apporte à l'utilisateur (supervision, estimation, diagnostic) ;
+  \item les \textbf{données} : mesures, historique, données dérivées et connaissances métier ;
+  \item les \textbf{connexions} entre les quatre éléments précédents (protocoles, bus de messages, API).
+\end{enumerate}
+Ce découpage nous sert de grille de lecture pour l'architecture présentée au chapitre~\ref{chap:architecture} (tableau~\ref{tab:5d}).
+
+\subsection{Architecture en couches}
+Les systèmes IoT, dont les jumeaux numériques sont une application, sont couramment décrits par une architecture en cinq couches, des capteurs jusqu'aux services métier~\cite{sethi2017} (figure~\ref{fig:couches}).
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[couche/.style={boite,text width=10.8cm,minimum height=0.9cm,font=\small}]
+  \node[couche,draw=orange,fill=orangeclair] (c5) at (0,5.2) {\textbf{5. Métier / services} -- maintenance, optimisation, décision};
+  \node[couche,draw=vert,fill=vertclair] (c4) at (0,3.9) {\textbf{4. Application} -- tableaux de bord, 3D, modèles IA};
+  \node[couche] (c3) at (0,2.6) {\textbf{3. Traitement} -- stockage, calcul, edge / cloud};
+  \node[couche] (c2) at (0,1.3) {\textbf{2. Réseau / transport} -- OPC UA, MQTT, réseau industriel};
+  \node[couche] (c1) at (0,0) {\textbf{1. Perception} -- capteurs, automates, équipements};
+  \draw[fleche,bleu,line width=1.2pt] (-6.3,0) -- node[left,font=\scriptsize,align=center,bleu]{flux de\\données} (-6.3,5.2);
+  \draw[fleche,orange,line width=1.2pt] (6.3,5.2) -- node[right,font=\scriptsize,align=center,orange]{valeur\\métier} (6.3,0);
+\end{tikzpicture}
+\caption{Architecture en cinq couches d'un système IoT, d'après~\cite{sethi2017}}
+\label{fig:couches}
+\end{figure}
+
+\subsection{Niveaux d'échelle}
+On distingue plusieurs niveaux de jumeaux selon le périmètre modélisé~\cite{ibmdt} : le jumeau de \textbf{composant} (un roulement), le jumeau d'\textbf{actif} (une pompe), le jumeau de \textbf{système} (un ensemble d'actifs qui fonctionnent ensemble) et le jumeau de \textbf{procédé} (une usine entière). Notre prototype se situe au niveau \textbf{système} : il couvre le circuit complet de broyage.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[node distance=0.6cm, niv/.style={boite,text width=2.3cm,minimum height=1.2cm}]
+  \node[niv] (a) {\textbf{Composant}\\\scriptsize roulement};
+  \node[niv,right=of a] (b) {\textbf{Actif}\\\scriptsize pompe à pulpe};
+  \node[niv,right=of b,draw=vert,fill=vertclair,line width=1.2pt] (c) {\textbf{Système}\\\scriptsize circuit de broyage};
+  \node[niv,right=of c] (d) {\textbf{Procédé}\\\scriptsize usine complète};
+  \foreach \u/\v in {a/b,b/c,c/d} \draw[fleche] (\u)--(\v);
+  \draw[fleche,dashed] ([yshift=-0.5cm]a.south west) -- node[below,font=\scriptsize,gris]{périmètre et complexité croissants} ([yshift=-0.5cm]d.south east);
+  \node[font=\scriptsize\bfseries,vert,above=0.1cm of c] {ce projet};
+\end{tikzpicture}
+\caption{Niveaux d'échelle des jumeaux numériques et positionnement du projet}
+\label{fig:niveaux}
+\end{figure}
+
+\subsection{Le cadre de capacités du Digital Twin Consortium}
+En 2022, le \gls{dtc} a publié la \textit{Digital Twin Capabilities Periodic Table}, un cadre qui regroupe les capacités d'un jumeau numérique en six familles~\cite{dtccpt} : services de données, intégration, intelligence, expérience utilisateur, gestion et fiabilité (\textit{trustworthiness}). Le tableau~\ref{tab:dtc} montre comment le prototype couvre ces familles.
+
+\begin{table}[H]
+\centering
+\caption{Couverture des six familles de capacités du DTC~\cite{dtccpt} par le prototype}
+\label{tab:dtc}
+\begin{tabularx}{\textwidth}{lX}
+\toprule
+\textbf{Famille} & \textbf{Réalisation dans le prototype} \\
+\midrule
+Services de données & Ingestion MQTT, alignement temporel, historien SQLite, jeux de données CSV \\
+Intégration & Acquisition OPC UA via KEPServerEX, passerelle Node-RED, relecture des historiques \\
+Intelligence & Capteur virtuel XGBoost, simulateur What-If (forêt aléatoire), copilote Graph RAG \\
+Expérience utilisateur & Synoptique, fiches équipements, vue 3D, graphe, maintenance, conformes ISA-101 \\
+Gestion & Services conteneurisés (Docker Compose), modèles sérialisés et versionnés \\
+Fiabilité & Authentification JWT, mots de passe hachés (bcrypt), rôles, persistance des données \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Bénéfices attendus}
+Le premier bénéfice mis en avant est la \textbf{maintenance prédictive}. Le guide des bonnes pratiques d'exploitation et de maintenance du Département de l'Énergie américain estime qu'un programme de maintenance prédictive bien mené réduit les coûts de maintenance de 25 à 30\,\% et élimine 70 à 75\,\% des pannes, par rapport à une maintenance réactive~\cite{doeom}. Le second est la \textbf{mesure virtuelle} de grandeurs difficiles à obtenir en ligne, abordée à la section suivante.
+
+\section{Les capteurs virtuels (\textit{soft sensors})}
+Un capteur virtuel est un modèle qui estime une grandeur difficile ou coûteuse à mesurer à partir de variables facilement disponibles. Dans l'industrie des procédés, les approches orientées données se sont imposées pour ce rôle~\cite{kadlec2009}. Leurs difficultés classiques sont connues : données manquantes, valeurs aberrantes, dérive du procédé dans le temps et écarts d'échantillonnage entre les variables~\cite{kadlec2009}. Ce dernier point est central dans notre cas, où les mesures de santé et les mesures de procédé ne sont pas acquises au même rythme (section~\ref{sec:asymetrie}).
+
+\subsection{XGBoost}
+XGBoost est une implémentation optimisée du \textit{gradient boosting} sur arbres de décision : le modèle final est une somme d'arbres, chacun corrigeant les erreurs des précédents, avec une régularisation qui limite le surapprentissage~\cite{chen2016}. Il est performant sur des données tabulaires de taille modérée et fournit l'importance des variables, ce qui aide à interpréter les estimations auprès des ingénieurs procédé.
+
+\section{Simulation What-If et forêts aléatoires}
+Un opérateur se pose souvent des questions prospectives : «~que se passe-t-il si j'augmente le débit d'alimentation de 10\,\% ?~». Tester ces réglages sur l'installation réelle est risqué et coûteux. Un 	extbf{modèle de substitution} (	extit{surrogate model}), appris sur l'historique du procédé, permet de répondre en quelques millisecondes en prédisant l'état du circuit qui résulterait d'un jeu d'entrées donné. La forêt aléatoire se prête bien à cet usage : elle agrège un grand nombre d'arbres de décision, chacun entraîné sur un échantillon bootstrap des données et sur un sous-ensemble aléatoire de variables, ce qui réduit la variance et le surapprentissage~\cite{breiman2001}. Elle gère nativement plusieurs sorties à la fois et capte les non-linéarités sans réglage fin. En contrepartie, comme tout modèle orienté données, elle n'extrapole pas au-delà du domaine observé : ses prédictions ne valent que pour des réglages proches de ceux rencontrés dans l'historique.
+
+\section{Les assistants à base de modèles de langage}
+
+\subsection{La génération augmentée par récupération (RAG)}
+Un \gls{llm} seul ne connaît ni l'état de l'usine ni sa documentation. Le \gls{rag} combine un modèle génératif et une étape de recherche documentaire : les passages pertinents sont récupérés puis fournis au modèle avec la question, ce qui ancre la réponse dans des sources vérifiables~\cite{lewis2020}.
+
+\subsection{Graph RAG}
+Le Graph RAG remplace ou complète la recherche documentaire par un \textbf{graphe de connaissances} : entités et relations sont extraites puis organisées en graphe, ce qui permet de répondre à des questions qui portent sur l'ensemble d'un corpus ou sur des liens entre entités~\cite{edge2024}. Dans une usine, ce graphe relie naturellement équipements, capteurs, lignes et bons de travail. Il permet de répondre à des questions comme «~quels équipements sont en aval de la pompe SP\_001 et quelles interventions y ont eu lieu ?~».
+
+\section{Conclusion}
+Le jumeau numérique fournit le cadre conceptuel, et les modèles de Tao et du DTC fournissent une grille d'évaluation. Trois briques d'IA répondent aux difficultés identifiées au chapitre~ef{chap:contexte} : XGBoost pour la qualité non mesurée, la forêt aléatoire pour anticiper l'effet d'un réglage, et le Graph RAG pour l'information dispersée. Le chapitre suivant traduit ces éléments en besoins précis.

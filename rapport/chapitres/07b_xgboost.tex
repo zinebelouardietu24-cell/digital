@@ -1,0 +1,102 @@
+\subsection{Capteur virtuel du P80 par XGBoost}
+\label{sec:xgboost}
+
+\paragraph{Objectif.} Estimer en continu le P80 de la surverse des hydrocyclones, c'est-à-dire la finesse du produit envoyé en aval, sans attendre une analyse granulométrique.
+
+\paragraph{Données.} Le modèle est entraîné sur les données du jumeau (dossier \texttt{data/}) : 2\,880 mesures procédé acquises toutes les 15 minutes du 1\textsuperscript{er} au 30 juillet 2026, et 43\,200 mesures de santé acquises chaque minute. Chaque mesure procédé est associée à la \textbf{moyenne des signaux de santé sur les 15 minutes qui la précèdent}, ce qui reprend le principe d'alignement temporel décrit à la section~\ref{sec:asymetrie}. Sur cette période, le P80 de la surverse varie entre 135,7 et 149,9~µm (moyenne 142,7~µm, écart-type 3,67~µm).
+
+\paragraph{Choix des variables et prévention des fuites.} Un capteur virtuel ne doit utiliser que des grandeurs réellement disponibles au moment de l'estimation. Toutes les granulométries et teneurs mesurées en aval, ainsi que le rapport de réduction (calculé à partir du P80), ont donc été \textbf{exclues}, car elles contiennent la réponse. Deux scénarios ont été évalués :
+\begin{itemize}
+  \item \textbf{Scénario A -- capteurs en ligne} (32 variables) : débits et fractions solides des différentes lignes (débitmètres et densimètres), ainsi que les signaux de santé des équipements (puissance et vitesse du broyeur, pressions des cyclones, vitesse de la pompe, niveau du bac, etc.) ;
+  \item \textbf{Scénario B -- A + caractérisation de l'alimentation} (34 variables) : on ajoute le P80 et la teneur BPL de l'alimentation fraîche, connus en amont du circuit.
+\end{itemize}
+
+\paragraph{Protocole.} Pour respecter la nature temporelle des données, le découpage est \textbf{chronologique} : 70\,\% pour l'entraînement (2\,015 points), 15\,\% pour la validation (433 points) et 15\,\% pour le test (432 points, du 26 au 30 juillet). Un découpage aléatoire aurait laissé le modèle «~voir le futur~» et surestimé ses performances. Les hyperparamètres de XGBoost~\cite{chen2016} (profondeur, taux d'apprentissage, sous-échantillonnage) sont choisis par recherche de grille, avec arrêt anticipé sur le jeu de validation. Le modèle final est ensuite réentraîné sur l'entraînement et la validation, puis évalué une seule fois sur le test. Trois modèles servent de comparaison :
+\begin{itemize}
+  \item une prédiction constante égale à la moyenne, qui sert de plancher ;
+  \item une régression linéaire régularisée (Ridge) ;
+  \item un Random Forest avec les mêmes hyperparamètres que le simulateur What-If du backend.
+\end{itemize}
+Les performances sont mesurées par le coefficient de détermination $R^2$, la \gls{rmse}, la \gls{mae} et l'erreur relative moyenne (MAPE) :
+\[
+\mathrm{RMSE}=\sqrt{\frac{1}{n}\sum_{i=1}^{n}(y_i-\hat{y}_i)^2}, \qquad
+\mathrm{MAE}=\frac{1}{n}\sum_{i=1}^{n}\lvert y_i-\hat{y}_i\rvert, \qquad
+R^2 = 1-\frac{\sum_i (y_i-\hat{y}_i)^2}{\sum_i (y_i-\bar{y})^2}
+\]
+
+\paragraph{Résultats.} Le tableau~\ref{tab:resp80} et la figure~\ref{fig:r2comp} présentent les performances sur le jeu de test.
+
+\begin{table}[H]
+\centering
+\caption{Performance des modèles sur le jeu de test (432 points, 26--30 juillet 2026)}
+\label{tab:resp80}
+\small\setlength{\tabcolsep}{5pt}
+\begin{tabular}{llcccc}
+\toprule
+\textbf{Scénario} & \textbf{Modèle} & $\boldsymbol{R^2}$ & \textbf{RMSE (µm)} & \textbf{MAE (µm)} & \textbf{MAPE} \\
+\midrule
+\multirow{4}{*}{A -- en ligne}
+ & Moyenne (référence) & $-0{,}025$ & 3,916 & 3,542 & 2,50\,\% \\
+ & Régression Ridge & 0,890 & 1,281 & 1,002 & 0,70\,\% \\
+ & Random Forest & 0,953 & 0,842 & 0,672 & 0,47\,\% \\
+ & \textbf{XGBoost} & \textbf{0,950} & \textbf{0,869} & \textbf{0,669} & \textbf{0,47\,\%} \\
+\midrule
+\multirow{4}{*}{B -- + alimentation}
+ & Moyenne (référence) & $-0{,}025$ & 3,916 & 3,542 & 2,50\,\% \\
+ & Régression Ridge & 0,950 & 0,861 & 0,662 & 0,47\,\% \\
+ & Random Forest & 0,952 & 0,845 & 0,667 & 0,47\,\% \\
+ & \textbf{XGBoost} & \textbf{0,953} & \textbf{0,841} & \textbf{0,657} & \textbf{0,46\,\%} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{models_r2_comparison}
+\caption{Coefficient de détermination $R^2$ des quatre modèles sur le jeu de test, pour les deux scénarios}
+\label{fig:r2comp}
+\end{figure}
+
+La figure~\ref{fig:p80ts} superpose le P80 mesuré et le P80 estimé par XGBoost sur toute la période de test, et la figure~\ref{fig:parity} compare les valeurs point par point.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{p80_timeseries_B}
+\caption{P80 mesuré et P80 estimé par XGBoost sur le jeu de test (scénario B)}
+\label{fig:p80ts}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.45\textwidth]{p80_parity_A}\hfill
+\includegraphics[width=0.45\textwidth]{p80_parity_B}
+\caption{P80 estimé en fonction du P80 mesuré (la diagonale correspond à une estimation parfaite)}
+\label{fig:parity}
+\end{figure}
+
+\paragraph{Robustesse.} Un seul découpage peut être favorable par hasard. Une validation croisée temporelle en 5 plis (\textit{TimeSeriesSplit}), où chaque pli teste le modèle sur une période postérieure à celle d'entraînement, donne pour XGBoost :
+\begin{itemize}
+  \item scénario A : $R^2 = 0{,}938 \pm 0{,}008$ et RMSE $= 0{,}93 \pm 0{,}06$~µm ;
+  \item scénario B : $R^2 = 0{,}944 \pm 0{,}007$ et RMSE $= 0{,}88 \pm 0{,}03$~µm.
+\end{itemize}
+La faible dispersion d'un pli à l'autre montre que le modèle reste stable dans le temps.
+
+\paragraph{Variables les plus influentes.} La figure~\ref{fig:importance} montre que, dans le scénario B, le modèle s'appuie d'abord sur la caractérisation de l'alimentation : P80 d'alimentation (55\,\% du gain total), teneur BPL (21\,\%) et débit solide d'alimentation (13\,\%). Dans le scénario A, en l'absence de ces analyses, il reconstitue l'information à partir des mesures hydrauliques : fraction solide de la surverse (36\,\%), débit de décharge du broyeur (23\,\%), débit de surverse (16\,\%) et débit d'alimentation (15\,\%). Ce comportement est cohérent avec la physique de la classification : la densité et le débit de la surverse dépendent directement de la coupure granulométrique des hydrocyclones~\cite{wills2016}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.75\textwidth]{xgb_feature_importance}
+\caption{Importance des variables du modèle XGBoost (scénario B, gain normalisé)}
+\label{fig:importance}
+\end{figure}
+
+\paragraph{Analyse.} Quatre enseignements se dégagent.
+\begin{enumerate}
+  \item \textbf{Le capteur virtuel est fiable.} Avec une erreur moyenne de 0,66~µm, soit 0,46\,\% du P80, XGBoost réduit l'erreur de 81\,\% par rapport à la référence constante (MAE de 3,54~µm).
+  \item \textbf{Les capteurs en ligne suffisent.} Sans aucune analyse de laboratoire (scénario A), XGBoost atteint déjà $R^2 = 0{,}950$. Un modèle linéaire plafonne à 0,890 dans ce scénario : la relation entre les débits et la granulométrie n'est pas linéaire, ce qui justifie un modèle à base d'arbres.
+  \item \textbf{XGBoost et Random Forest sont à égalité en précision.} Les écarts, de l'ordre de 0,003 en $R^2$, ne sont pas significatifs. XGBoost se distingue par sa \textbf{sobriété} : son modèle final comporte 49 arbres de profondeur 3 et pèse \textbf{0,06~Mo}, contre 100 arbres de profondeur 22 et \textbf{8,3~Mo} pour le Random Forest, soit un modèle environ 130 fois plus léger. C'est un atout pour un déploiement embarqué, au plus près des machines.
+  \item \textbf{Le plafond observé est celui du bruit de mesure.} Les figures~\ref{fig:p80ts} et~\ref{fig:parity} montrent que le P80 évolue selon trois régimes de fonctionnement (environ 138, 141,5 et 147~µm) et que le modèle identifie chaque changement de régime sans retard. L'erreur résiduelle correspond aux fluctuations à l'intérieur d'un régime, qui ne sont liées à aucune variable d'entrée. Aucun modèle ne peut les prédire, ce qui explique que les trois modèles non linéaires convergent vers la même RMSE, environ 0,84~µm.
+\end{enumerate}
+
+\paragraph{Reproductibilité.} L'ensemble de l'expérience tient dans un script unique du projet, \nolinkurl{ml/soft_sensor_p80/train_xgboost.py}, avec une graine aléatoire fixée. Le script produit le fichier \texttt{metrics.json}, les figures de cette section et le modèle entraîné (\nolinkurl{xgb_soft_sensor_p80.joblib}).
+

@@ -1,0 +1,29 @@
+\chapitresansnumero{Introduction générale}
+
+Le Maroc détient à lui seul environ 50 milliards de tonnes de réserves de roche phosphatée, soit près de 68\,\% des réserves mondiales estimées à 73 milliards de tonnes, et se classe deuxième producteur mondial avec quelque 36 millions de tonnes extraites en 2025~\cite{usgs2026}. Avant de devenir acide phosphorique ou engrais, ce minerai doit être préparé : il est notamment \textbf{broyé} afin de libérer les grains utiles de leur gangue et d'atteindre la finesse exigée par les étapes d'enrichissement qui suivent~\cite{wills2016}.
+
+Le broyage est une opération coûteuse. La comminution (concassage et broyage) absorbe environ 53\,\% de l'énergie consommée dans une mine et représente au moins 10\,\% des coûts de production~\cite{jeswiet2016}. Sa performance dépend d'un équilibre fragile entre le débit d'alimentation, la dilution de la pulpe, la charge du broyeur et le réglage des hydrocyclones. Pourtant, l'indicateur de qualité principal, le \gls{p80}, est généralement obtenu par analyse en laboratoire ou par un granulomètre en ligne coûteux : l'opérateur pilote donc souvent «~à retardement~». De même, la maintenance reste fréquemment planifiée à dates fixes ou déclenchée après la panne, alors que les signaux précurseurs (vibrations, températures de paliers) sont disponibles dans le \gls{scada}.
+
+Le \textbf{jumeau numérique} répond précisément à ce type de situation. Il s'agit d'une représentation virtuelle d'un actif physique, synchronisée avec lui par un flux de données, qui permet de le surveiller, d'en estimer les grandeurs non mesurées et d'en anticiper les dérives~\cite{grieves2017,tao2019}.
+
+\section*{Problématique}
+Ce projet de fin d'année, mené au sein de JESA, part de la question suivante :
+
+\begin{center}
+\fcolorbox{bleu}{bleuclair}{\begin{minipage}{0.9\textwidth}\itshape
+Comment concevoir une architecture logicielle de type jumeau numérique capable d'ingérer en temps réel la télémétrie d'un circuit de broyage de phosphate, d'en conserver l'historique, d'en estimer la granulométrie non mesurée, d'anticiper l'effet d'un changement de réglage, et de restituer ces informations de façon exploitable à un opérateur, un ingénieur procédé et un responsable maintenance ?
+\end{minipage}}
+\end{center}
+
+\section*{Objectifs}
+\begin{enumerate}
+  \item Modéliser le circuit (bac de pompage, pompe à pulpe, batterie d'hydrocyclones, broyeur à boulets) et recenser l'ensemble de ses signaux.
+  \item Mettre en place une chaîne d'acquisition \gls{iiot} réaliste, de l'automate simulé jusqu'au broker \gls{mqtt}.
+  \item Concevoir un moteur de traitement qui synchronise des flux à fréquences différentes, calcule les indicateurs dérivés (bilans de matière, charge circulante) et enregistre durablement toute la télémétrie.
+  \item Développer des modèles d'apprentissage automatique : un simulateur What-If des effets d'un réglage et un capteur virtuel du P80.
+  \item Restituer le tout dans une application web conforme aux bonnes pratiques d'\gls{hmi} industrielle (ISA-101~\cite{isa101}).
+  \item Évaluer la solution de façon chiffrée et en identifier les limites.
+\end{enumerate}
+
+\section*{Organisation du rapport}
+Le \textbf{chapitre~\ref{chap:contexte}} présente l'organisme d'accueil et le procédé étudié. Le \textbf{chapitre~\ref{chap:etatart}} dresse un état de l'art des jumeaux numériques et des techniques d'\gls{ml} mobilisées. Le \textbf{chapitre~\ref{chap:besoins}} formalise les besoins. Le \textbf{chapitre~\ref{chap:architecture}} décrit l'architecture et justifie les choix technologiques. Le \textbf{chapitre~\ref{chap:realisation}} présente la réalisation, les résultats et les limites du prototype. Une conclusion générale ouvre enfin sur les perspectives du travail.
