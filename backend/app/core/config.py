@@ -40,5 +40,6 @@ class Settings:
     PROCESS_CSV_PATH: Path = DATA_DIR / "process_flow_timeseries.csv"
     HEALTH_CSV_PATH: Path = DATA_DIR / "machine_health_timeseries.csv"
     REGISTRY_PATH: Path = DATA_DIR / "tag_mapping_registry.csv"
+    HISTORIAN_DB_PATH: Path = Path(os.getenv("HISTORIAN_DB_PATH", str(DATA_DIR / "historian" / "telemetry.db")))
 
 settings = Settings()

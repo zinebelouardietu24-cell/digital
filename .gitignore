@@ -10,3 +10,6 @@ frontend/dist/
 *.env
 .~lock.*#
 
+# Artefacts lourds ou générés
+data/models/
+data/historian/

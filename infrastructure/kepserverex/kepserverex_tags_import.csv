@@ -1,0 +1,46 @@
+Tag Name,Address,Data Type,Client Access,Scan Rate,Description
+Feed_Solid_Flow,"RAMP(1000,449.92,588.46,3.4635)",Float,Read Only,1000,Solid Flow (t/h) - PB_001 - source: PB001.IN.SolidFlow
+Feed_BPL,"RAMP(1000,58.55,72.03,0.337)",Float,Read Only,1000,Grade (BPL) (%) - PB_001 - source: PB001.IN.BPL
+Feed_P80,"RAMP(1000,355.25,636.71,7.0365)",Float,Read Only,1000,P80 (um) - PB_001 - source: PB001.IN.P80
+Feed_Solid_Fraction,"RAMP(1000,53.52,55.87,0.0587)",Float,Read Only,1000,Solid Fraction (%) - PB_001 - source: PB001.IN.SolidFraction
+Process_Water_Solid_Flow,"RAMP(1000,-1.0,1.0,0.05)",Float,Read Only,1000,Solid Flow (t/h) - PB_001 - source: PB001.WATER.SolidFlow
+Process_Water_Solid_Fraction,"RAMP(1000,-1.0,1.0,0.05)",Float,Read Only,1000,Solid Fraction (%) - PB_001 - source: PB001.WATER.SolidFraction
+Cyclone_Feed_Solid_Flow,"RAMP(1000,920.32,1273.13,8.8203)",Float,Read Only,1000,Solid Flow (t/h) - CY_001 - source: CY001.FEED.SolidFlow
+Cyclone_Feed_BPL,"RAMP(1000,59.22,71.8,0.3145)",Float,Read Only,1000,Grade (BPL) (%) - CY_001 - source: CY001.FEED.BPL
+Cyclone_Feed_P80,"RAMP(1000,221.0,275.5,1.3625)",Float,Read Only,1000,P80 (um) - CY_001 - source: CY001.FEED.P80
+Cyclone_Feed_Solid_Fraction,"RAMP(1000,39.04,41.77,0.0683)",Float,Read Only,1000,Solid Fraction (%) - CY_001 - source: CY001.FEED.SolidFraction
+Output_Slurry_Solid_Flow,"RAMP(1000,447.83,585.06,3.4307)",Float,Read Only,1000,Solid Flow (t/h) - CY_001 - source: CY001.OF.SolidFlow
+Output_Slurry_BPL,"RAMP(1000,58.73,71.69,0.324)",Float,Read Only,1000,Grade (BPL) (%) - CY_001 - source: CY001.OF.BPL
+Output_Slurry_P80,"RAMP(1000,135.03,150.62,0.3898)",Float,Read Only,1000,P80 (um) - CY_001 - source: CY001.OF.P80
+Output_Slurry_Solid_Fraction,"RAMP(1000,26.87,28.56,0.0422)",Float,Read Only,1000,Solid Fraction (%) - CY_001 - source: CY001.OF.SolidFraction
+Cyclone_Underflow_Solid_Flow,"RAMP(1000,471.52,686.73,5.3803)",Float,Read Only,1000,Solid Flow (t/h) - CY_001 - source: CY001.UF.SolidFlow
+Cyclone_Underflow_BPL,"RAMP(1000,59.53,72.46,0.3232)",Float,Read Only,1000,Grade (BPL) (%) - CY_001 - source: CY001.UF.BPL
+Cyclone_Underflow_P80,"RAMP(1000,324.48,601.06,6.9145)",Float,Read Only,1000,P80 (um) - CY_001 - source: CY001.UF.P80
+Cyclone_Underflow_Solid_Fraction,"RAMP(1000,66.47,69.39,0.073)",Float,Read Only,1000,Solid Fraction (%) - CY_001 - source: CY001.UF.SolidFraction
+Ball_Mill_Discharge_Solid_Flow,"RAMP(1000,472.28,689.25,5.4243)",Float,Read Only,1000,Solid Flow (t/h) - BM_001 - source: BM001.DISCH.SolidFlow
+Ball_Mill_Discharge_BPL,"RAMP(1000,59.59,72.4,0.3203)",Float,Read Only,1000,Grade (BPL) (%) - BM_001 - source: BM001.DISCH.BPL
+Ball_Mill_Discharge_P80,"RAMP(1000,132.55,139.67,0.178)",Float,Read Only,1000,P80 (um) - BM_001 - source: BM001.DISCH.P80
+Ball_Mill_Discharge_Solid_Fraction,"RAMP(1000,66.0,69.58,0.0895)",Float,Read Only,1000,Solid Fraction (%) - BM_001 - source: BM001.DISCH.SolidFraction
+Circulating_Load_Ratio_pct,"RAMP(1000,102.44,120.86,0.4605)",Float,Read Only,1000,Circulating Load Ratio (%) - CIRCUIT - source: CIRCUIT.KPI.CirculatingLoad
+Mill_Reduction_Ratio,"RAMP(1000,2.36,4.44,0.052)",Float,Read Only,1000,Reduction Ratio (ratio) - CIRCUIT - source: CIRCUIT.KPI.ReductionRatio
+Ambient_Temp_C,"RAMP(1000,14.64,29.53,0.3723)",Float,Read Only,1000,Ambient Temperature (degC) - CIRCUIT - source: CIRCUIT.ENV.AmbientTemp
+PB001_Level_pct,"RAMP(1000,40.21,70.13,0.748)",Float,Read Only,1000,Sump Level (%) - PB_001 - source: PB001.HEALTH.Level
+PB001_Level_Setpoint_pct,"RAMP(1000,49.5,60.5,0.275)",Float,Read Only,1000,Sump Level Setpoint (%) - PB_001 - source: PB001.HEALTH.LevelSetpoint
+PB001_Sump_Temp_C,"RAMP(1000,19.37,36.62,0.4312)",Float,Read Only,1000,Sump Temperature (degC) - PB_001 - source: PB001.HEALTH.SumpTemp
+SP001_Motor_Current_A,"RAMP(1000,94.18,145.88,1.2925)",Float,Read Only,1000,Motor Current (A) - SP_001 - source: SP001.HEALTH.MotorCurrent
+SP001_Motor_Power_kW,"RAMP(1000,68.26,104.63,0.9092)",Float,Read Only,1000,Motor Power (kW) - SP_001 - source: SP001.HEALTH.MotorPower
+SP001_Discharge_Pressure_kPa,"RAMP(1000,243.79,374.41,3.2655)",Float,Read Only,1000,Discharge Pressure (kPa) - SP_001 - source: SP001.HEALTH.DischargePressure
+SP001_Speed_RPM,"RAMP(1000,1460.89,1498.4,0.9377)",Float,Read Only,1000,Pump Speed (RPM) - SP_001 - source: SP001.HEALTH.Speed
+SP001_Bearing_Temp_C,"RAMP(1000,45.98,54.23,0.2062)",Float,Read Only,1000,Bearing Temperature (degC) - SP_001 - source: SP001.HEALTH.BearingTemp
+SP001_Vibration_mms,"RAMP(1000,1.5,2.69,0.0297)",Float,Read Only,1000,Vibration (trended RMS) (mm/s) - SP_001 - source: SP001.HEALTH.Vibration
+BM001_Power_Draw_kW,"RAMP(1000,1585.05,2156.05,14.275)",Float,Read Only,1000,Power Draw (kW) - BM_001 - source: BM001.HEALTH.PowerDraw
+BM001_Motor_Current_A,"RAMP(1000,258.89,356.22,2.4333)",Float,Read Only,1000,Motor Current (A) - BM_001 - source: BM001.HEALTH.MotorCurrent
+BM001_Mill_Speed_pctCritical,"RAMP(1000,72.05,75.69,0.091)",Float,Read Only,1000,Mill Speed (% of critical) - BM_001 - source: BM001.HEALTH.SpeedPctCritical
+BM001_Bearing_DE_Temp_C,"RAMP(1000,49.78,62.81,0.3258)",Float,Read Only,1000,Bearing Temp (Drive End) (degC) - BM_001 - source: BM001.HEALTH.BearingDETemp
+BM001_Bearing_NDE_Temp_C,"RAMP(1000,46.95,59.98,0.3257)",Float,Read Only,1000,Bearing Temp (Non-Drive End) (degC) - BM_001 - source: BM001.HEALTH.BearingNDETemp
+BM001_Vibration_mms,"RAMP(1000,2.11,3.89,0.0445)",Float,Read Only,1000,Vibration (trended RMS) (mm/s) - BM_001 - source: BM001.HEALTH.Vibration
+BM001_Sound_Level_dB,"RAMP(1000,81.22,93.98,0.319)",Float,Read Only,1000,Sound Level (dB) - BM_001 - source: BM001.HEALTH.SoundLevel
+CY001_Inlet_Pressure_kPa,"RAMP(1000,238.22,323.45,2.1307)",Float,Read Only,1000,Inlet Pressure (kPa) - CY_001 - source: CY001.HEALTH.InletPressure
+CY001_Vortex_DP_kPa,"RAMP(1000,79.83,108.31,0.712)",Float,Read Only,1000,Vortex Differential Pressure (kPa) - CY_001 - source: CY001.HEALTH.VortexDP
+CY001_Apex_Wear_Index_pct,"RAMP(1000,1.66,54.95,1.3323)",Float,Read Only,1000,Apex Wear Index (%) - CY_001 - source: CY001.HEALTH.ApexWear
+CY001_Cyclones_Online,"RAMP(2000,3,4,1)",Long,Read Only,1000,Cyclones Online (count) - CY_001 - source: CY001.HEALTH.CyclonesOnline

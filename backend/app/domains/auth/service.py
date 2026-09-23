@@ -12,7 +12,7 @@ DEMO_USERS: Dict[str, Dict] = {
         "email": "h.alami@jesa.ma",
         "role": "Plant Operator",
         "organization": "JESA / OCP Group",
-        "institution": "ENSA Berrechid"
+        "institution": "ENSEM Casablanca"
     },
     "engineer": {
         "id": "USR-002",
@@ -22,7 +22,7 @@ DEMO_USERS: Dict[str, Dict] = {
         "email": "s.benali@jesa.ma",
         "role": "Process Engineer",
         "organization": "JESA / OCP Group",
-        "institution": "ENSA Berrechid"
+        "institution": "ENSEM Casablanca"
     },
     "admin": {
         "id": "USR-003",
@@ -32,7 +32,7 @@ DEMO_USERS: Dict[str, Dict] = {
         "email": "admin.pfa@ensab.ac.ma",
         "role": "Plant Director",
         "organization": "JESA / OCP Group",
-        "institution": "ENSA Berrechid"
+        "institution": "ENSEM Casablanca"
     }
 }
 

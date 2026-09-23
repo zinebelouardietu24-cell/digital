@@ -5,6 +5,7 @@ from app.providers.csv_provider import CSVDataProvider
 from app.domains.assets.service import AssetService
 from app.domains.assets.repository import EquipmentRepository, MaintenanceRepository
 from app.domains.telemetry.subscriber import MQTTSubscriberService
+from app.domains.telemetry.historian import TelemetryHistorian
 from app.domains.telemetry.service import TelemetryService
 from app.domains.simulation.manager import SimulationManager
 from app.domains.knowledge_graph.service import KnowledgeGraphService
@@ -25,11 +26,12 @@ _kg_service: KnowledgeGraphService = None
 _rag_service: GraphRAGService = None
 _auth_service: AuthService = None
 _whatif_service: WhatIfService = None
+_historian: TelemetryHistorian = None
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login", auto_error=True)
 
 def init_app_services():
-    global _csv_provider, _asset_service, _mqtt_service, _telemetry_service, _sim_manager, _kg_service, _rag_service, _auth_service, _whatif_service
+    global _csv_provider, _asset_service, _mqtt_service, _telemetry_service, _sim_manager, _kg_service, _rag_service, _auth_service, _whatif_service, _historian
 
     _csv_provider = CSVDataProvider(settings.DATA_DIR)
     _whatif_service = WhatIfService(_csv_provider)
@@ -39,7 +41,9 @@ def init_app_services():
         maintenance_repo=MaintenanceRepository(settings.MAINTENANCE_HISTORY_PATH),
     )
     _kg_service = KnowledgeGraphService(_asset_service, _csv_provider)
-    _mqtt_service = MQTTSubscriberService(host=settings.MQTT_BROKER_HOST, port=settings.MQTT_BROKER_PORT)
+    _historian = TelemetryHistorian(settings.HISTORIAN_DB_PATH)
+    _historian.start()
+    _mqtt_service = MQTTSubscriberService(host=settings.MQTT_BROKER_HOST, port=settings.MQTT_BROKER_PORT, historian=_historian)
     _mqtt_service.start()
 
     _telemetry_service = TelemetryService(_asset_service, _csv_provider, _mqtt_service)
@@ -48,9 +52,11 @@ def init_app_services():
     _auth_service = AuthService()
 
 def shutdown_app_services():
-    global _mqtt_service, _kg_service
+    global _mqtt_service, _kg_service, _historian
     if _mqtt_service:
         _mqtt_service.stop()
+    if _historian:
+        _historian.stop()  # vide la file d'attente sur le disque avant l'arrêt
     if _kg_service:
         _kg_service.close()
 
@@ -77,6 +83,9 @@ def get_rag_service() -> GraphRAGService:
 
 def get_whatif_service() -> WhatIfService:
     return _whatif_service
+
+def get_historian() -> TelemetryHistorian:
+    return _historian
 
 def get_auth_service() -> AuthService:
     global _auth_service

@@ -26,24 +26,64 @@ const EQUIPMENT_HEIGHT = {
   BM_001: 1.0,
 };
 
+// World-space heights (not local offsets) used to shape the pipe's
+// intermediate routing bends — the exact start/end are overridden below by
+// portWorld(), these just need to ramp sensibly between them.
 const PIPE_HEIGHTS = {
-  P_001: [0.9, 0.9],
-  P_101: [0.55, 0.55],
-  P_002: [0.3, 0.5],
-  P_003: [1.4, 2.7],
-  P_006: [2.9, 2.9],
-  P_004: [0.6, 1.0],
-  P_005: [1.0, 1.0],
+  P_001: [0.9, 1.05],
+  P_101: [0.6, 1.05],
+  P_002: [0.25, 0.5],
+  P_003: [1.65, 2.75],
+  P_006: [2.6, 2.9],
+  P_004: [0.94, 1.0],
+  P_005: [1.0, 1.05],
 };
+
+// Real connection points on each equipment model, in that equipment's own
+// local space (matching the nozzle/trunnion geometry authored in each
+// PumpBox3D/Pump3D/Hydrocyclone3D/BallMill3D file) — so pipes terminate
+// exactly at the physical port instead of floating near an eyeballed 2D
+// coordinate that has no relationship to the 3D geometry's actual size.
+const PORTS = {
+  PB_001: { inlet: [-0.92, 0.3, 0], outlet: [0, -0.5, 0] },
+  SP_001: { suction: [-1.0, -0.15, 0], discharge: [0, 1.0, 0] },
+  CY_001: { feed: [-0.85, 0.85, 0], overflow: [0.75, 0.7, 0], underflow: [0, -0.96, 0] },
+  BM_001: { feed: [-1.725, 0, 0], discharge: [1.725, 0, 0] },
+};
+
+// Which pipe connects to which real port at each end (only equipment ends
+// are listed — pipe ends touching an external stream node keep their
+// schematic 2D position, since those aren't real 3D objects).
+const PIPE_ENDPOINTS = {
+  P_001: { end: ["PB_001", "inlet"] },
+  P_101: { end: ["PB_001", "inlet"] },
+  P_002: { start: ["PB_001", "outlet"], end: ["SP_001", "suction"] },
+  P_003: { start: ["SP_001", "discharge"], end: ["CY_001", "feed"] },
+  P_006: { start: ["CY_001", "overflow"] },
+  P_004: { start: ["CY_001", "underflow"], end: ["BM_001", "feed"] },
+  P_005: { start: ["BM_001", "discharge"], end: ["PB_001", "inlet"] },
+};
+
+function portWorld(tag, port) {
+  const eq = LAYOUT.equipment[tag];
+  const [lx, ly, lz] = PORTS[tag][port];
+  const [wx, wy, wz] = to3D(eq.x, eq.y, EQUIPMENT_HEIGHT[tag]);
+  return [wx + lx, wy + ly, wz + lz];
+}
 
 function buildPipePoints(tag) {
   const pipe = LAYOUT.pipes[tag];
   const [hStart, hEnd] = PIPE_HEIGHTS[tag] || [1, 1];
   const n = pipe.points.length;
-  return pipe.points.map(([x, y], i) => {
+  const points = pipe.points.map(([x, y], i) => {
     const t = n > 1 ? i / (n - 1) : 0;
     return to3D(x, y, hStart + (hEnd - hStart) * t);
   });
+
+  const endpoints = PIPE_ENDPOINTS[tag];
+  if (endpoints?.start) points[0] = portWorld(...endpoints.start);
+  if (endpoints?.end) points[n - 1] = portWorld(...endpoints.end);
+  return points;
 }
 
 const EMPTY_ASSET = { live_metrics: {}, derived_metrics: {} };

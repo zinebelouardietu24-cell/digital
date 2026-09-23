@@ -23,4 +23,4 @@ class UserResponse(BaseModel):
     email: str
     role: str
     organization: str = "JESA / OCP Group"
-    institution: str = "ENSA Berrechid"
+    institution: str = "ENSEM Casablanca"

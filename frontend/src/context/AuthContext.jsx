@@ -88,7 +88,7 @@ export const AuthProvider = ({ children }) => {
           full_name: data.full_name,
           role: data.role,
           organization: "JESA / OCP Group",
-          institution: "ENSA Berrechid",
+          institution: "ENSEM Casablanca",
         };
 
         setToken(authToken);
@@ -124,7 +124,7 @@ export const AuthProvider = ({ children }) => {
           full_name: demoAccount.full_name,
           role: demoAccount.role,
           organization: "JESA / OCP Group",
-          institution: "ENSA Berrechid",
+          institution: "ENSEM Casablanca",
         };
 
         setToken(fakeToken);

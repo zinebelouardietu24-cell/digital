@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useAuth } from "../context/AuthContext";
-import logoEnsa from "../assets/logo_ensa.png";
 import logoJesa from "../assets/logo_jesa.png";
+import logoEnsem from "../assets/logo_ensem.jpg";
 import { Lock, User, Eye, EyeOff, ShieldCheck, Cpu, ArrowRight, AlertCircle } from "lucide-react";
 
 export default function LoginPage() {
@@ -45,7 +45,7 @@ export default function LoginPage() {
         <div style={styles.coBrandingBar}>
           <div style={styles.logoPill}>
             <div style={styles.logoSlot}>
-              <img src={logoEnsa} alt="ENSA Berrechid" style={styles.logoImgEnsa} />
+              <img src={logoEnsem} alt="ENSEM Casablanca" style={styles.logoImgEnsem} />
             </div>
             <div style={styles.logoDivider} />
             <div style={styles.logoSlot}>
@@ -181,7 +181,7 @@ export default function LoginPage() {
         {/* Footer Trust Indicator */}
         <div style={styles.footer}>
           <ShieldCheck size={14} color="#10b981" />
-          <span>Encrypted Session • ENSA Berrechid & JESA / OCP Group © 2026</span>
+          <span>Encrypted Session • ENSEM Casablanca & JESA / OCP Group © 2026</span>
         </div>
       </div>
     </div>
@@ -248,23 +248,23 @@ const styles = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    height: "40px",
+    height: "60px",
     padding: "0 8px",
     boxSizing: "border-box",
   },
-  logoImgEnsa: {
-    maxHeight: "36px",
+  logoImgEnsem: {
+    maxHeight: "58px",
     maxWidth: "100%",
     objectFit: "contain",
   },
   logoDivider: {
     width: "1px",
-    height: "28px",
+    height: "44px",
     backgroundColor: "#cbd5e1",
     flexShrink: 0,
   },
   logoImgJesa: {
-    maxHeight: "32px",
+    maxHeight: "46px",
     maxWidth: "100%",
     objectFit: "contain",
   },

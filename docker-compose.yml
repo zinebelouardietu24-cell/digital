@@ -6,6 +6,7 @@ services:
       - "1883:1883"
     volumes:
       - ./infrastructure/mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - mosquitto_data:/mosquitto/data
 
   neo4j:
     image: neo4j:5.18-community
@@ -61,3 +62,4 @@ services:
 
 volumes:
   neo4j_data:
+  mosquitto_data:

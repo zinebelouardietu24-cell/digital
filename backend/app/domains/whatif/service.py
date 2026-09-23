@@ -1,14 +1,23 @@
 import logging
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+import joblib
 import numpy as np
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score
 
 from app.providers.csv_provider import CSVDataProvider
+from app.core.config import settings
 
 logger = logging.getLogger(__name__)
+
+MODEL_PATH: Path = settings.DATA_DIR / "models" / "whatif_model.joblib"
+# Bumped whenever the model's hyperparameters change, so a stale cache from
+# a previous tuning pass is never silently reused with different accuracy
+# characteristics than what the current code would produce.
+MODEL_VERSION = 2
 
 # Things an operator would actually adjust upstream of the circuit.
 INPUT_COLUMNS = [
@@ -124,6 +133,24 @@ class WhatIfService:
                 f"What-if training data missing columns. inputs={missing_inputs} outputs={missing_outputs}"
             )
 
+        # Reuse a previously trained model from disk when the underlying
+        # historical dataset hasn't changed (row count as a cheap staleness
+        # check) — avoids retraining on every backend restart, which under
+        # a resource-constrained host can take far longer than expected.
+        if MODEL_PATH.exists():
+            try:
+                cached = joblib.load(MODEL_PATH)
+                if cached.get("row_count") == len(df) and cached.get("model_version") == MODEL_VERSION:
+                    self._model = cached["model"]
+                    self._r2_scores = cached["r2_scores"]
+                    self._baseline = cached["baseline"]
+                    self._input_ranges = cached["input_ranges"]
+                    logger.info("What-if model loaded from cache (%s), %d rows.", MODEL_PATH, len(df))
+                    return
+                logger.info("Cached what-if model stale (row count or version mismatch) — retraining.")
+            except Exception as e:
+                logger.warning("Failed to load cached what-if model (%s) — retraining.", e)
+
         X = df[INPUT_COLUMNS].astype(float)
         y = df[OUTPUT_COLUMNS].astype(float)
 
@@ -133,7 +160,21 @@ class WhatIfService:
         # environment, "use every detected core" can cause severe
         # oversubscription/thrashing that makes training far slower than a
         # modest, bounded parallelism would.
-        model = RandomForestRegressor(n_estimators=100, random_state=42, n_jobs=2)
+        # max_depth/min_samples_leaf bound tree growth — this is a
+        # 24-output multi-output regression, where sklearn's split-finding
+        # evaluates variance reduction across all 24 targets at every
+        # candidate node, making unbounded-depth trees far more expensive
+        # here than in a typical single-output forest of the same size.
+        # (n_estimators=60/max_depth=14 was tried first and cut R2 badly on
+        # the noisier targets, e.g. Ball Mill Discharge P80 fell to 0.66 —
+        # this depth/count strikes a better accuracy/speed balance.)
+        model = RandomForestRegressor(
+            n_estimators=100,
+            max_depth=22,
+            min_samples_leaf=2,
+            random_state=42,
+            n_jobs=2,
+        )
         model.fit(X_train, y_train)
 
         y_pred = model.predict(X_test)
@@ -152,6 +193,23 @@ class WhatIfService:
             for col in INPUT_COLUMNS
         }
         logger.info("What-if model trained on %d rows. Mean R2=%.3f", len(df), float(np.mean(scores)))
+
+        try:
+            MODEL_PATH.parent.mkdir(parents=True, exist_ok=True)
+            joblib.dump(
+                {
+                    "model": self._model,
+                    "r2_scores": self._r2_scores,
+                    "baseline": self._baseline,
+                    "input_ranges": self._input_ranges,
+                    "row_count": len(df),
+                    "model_version": MODEL_VERSION,
+                },
+                MODEL_PATH,
+            )
+            logger.info("What-if model cached to %s", MODEL_PATH)
+        except Exception as e:
+            logger.warning("Failed to cache what-if model to disk (%s) — will retrain next restart.", e)
 
     def get_config(self) -> Dict[str, Any]:
         self._ensure_trained()

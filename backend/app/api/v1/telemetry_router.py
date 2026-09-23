@@ -1,7 +1,11 @@
-from typing import Dict, Any, List
-from fastapi import APIRouter, Depends
+import csv
+import io
+from typing import Dict, Any, List, Optional
+from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import StreamingResponse
 
-from app.api.dependencies import get_telemetry_service
+from app.api.dependencies import get_telemetry_service, get_historian
+from app.domains.telemetry.historian import TelemetryHistorian
 from app.domains.telemetry.service import TelemetryService
 
 router = APIRouter(tags=["MQTT Live Telemetry"])
@@ -83,3 +87,47 @@ def get_active_sources(
     if not telemetry_service or not telemetry_service.mqtt_service:
         return {"sources": []}
     return {"sources": telemetry_service.mqtt_service.get_active_sources()}
+
+
+# ------------------------------------------------------------------ historien persistant
+
+def _require_historian(historian: Optional[TelemetryHistorian]) -> TelemetryHistorian:
+    if historian is None:
+        raise HTTPException(status_code=503, detail="Telemetry historian is not running")
+    return historian
+
+@router.get("/historian/stats")
+def get_historian_stats(historian: TelemetryHistorian = Depends(get_historian)) -> Dict[str, Any]:
+    return _require_historian(historian).stats()
+
+@router.get("/historian/query")
+def query_historian(
+    tag_id: Optional[str] = None,
+    start: Optional[str] = None,
+    end: Optional[str] = None,
+    source: Optional[str] = None,
+    limit: int = 1000,
+    historian: TelemetryHistorian = Depends(get_historian),
+) -> List[Dict[str, Any]]:
+    """Recorded messages, oldest first. start/end are ISO-8601 UTC bounds on reception time."""
+    return _require_historian(historian).query(tag_id=tag_id, start=start, end=end, source=source,
+                                               limit=min(limit, 100_000))
+
+@router.get("/historian/export.csv")
+def export_historian_csv(
+    tag_id: Optional[str] = None,
+    start: Optional[str] = None,
+    end: Optional[str] = None,
+    source: Optional[str] = None,
+    limit: int = 1_000_000,
+    historian: TelemetryHistorian = Depends(get_historian),
+):
+    rows = _require_historian(historian).query(tag_id=tag_id, start=start, end=end, source=source, limit=limit)
+    buf = io.StringIO()
+    fields = ["received_at", "ts", "tag_id", "value", "unit", "quality", "source", "domain", "topic"]
+    writer = csv.DictWriter(buf, fieldnames=fields, extrasaction="ignore")
+    writer.writeheader()
+    writer.writerows(rows)
+    buf.seek(0)
+    return StreamingResponse(iter([buf.getvalue()]), media_type="text/csv",
+                             headers={"Content-Disposition": "attachment; filename=telemetry_history.csv"})

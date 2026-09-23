@@ -1,0 +1,241 @@
+[
+    {
+        "id": "14fba5941e1b2921",
+        "type": "tab",
+        "label": "Flux 1",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "5e090b7cd5530ca8",
+        "type": "tab",
+        "label": "Flux 2",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "68cf048d249c08e9",
+        "type": "tab",
+        "label": "OCP - KEPServerEX to MQTT (Digital Twin)",
+        "disabled": false,
+        "info": "IMPORTANT avant de deployer:\n1) Ouvre le noeud 'Build Tag List' et remplace CHANNEL_DEVICE = 'Channel1.Device1' par le vrai nom Channel.Device de ton projet KEPServerEX (visible dans l'arborescence KEPServerEX ou dans UA Expert).\n2) Ouvre le noeud 'KEPServerEX - Subscribe' et verifie l'URL de l'endpoint OPC UA.\n3) Verifie que Mosquitto tourne sur localhost:1883.\nLes 45 tags viennent de kepserverex_tags_import.csv, matches avec tag_mapping_registry.csv."
+    },
+    {
+        "id": "cc34a92ece520928",
+        "type": "OpcUa-Endpoint",
+        "endpoint": "opc.tcp://localhost:49320",
+        "secpol": "None",
+        "secmode": "None",
+        "none": true,
+        "login": false,
+        "usercert": false
+    },
+    {
+        "id": "1453de9140fa3beb",
+        "type": "mqtt-broker",
+        "name": "Mosquitto Local",
+        "broker": "localhost",
+        "port": "1883",
+        "clientid": "nodered_digitaltwin",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true
+    },
+    {
+        "id": "bd0a8d978f0a40f2",
+        "type": "comment",
+        "z": "68cf048d249c08e9",
+        "name": "A FAIRE avant Deploy : ouvrir 'Build Tag List' et corriger CHANNEL_DEVICE (voir info de l'onglet)",
+        "info": "",
+        "x": 250,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "769f06820c00569f",
+        "type": "inject",
+        "z": "68cf048d249c08e9",
+        "name": "Start (au deploiement)",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "1",
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 150,
+        "y": 120,
+        "wires": [
+            [
+                "f1155c5a71256f0e"
+            ]
+        ]
+    },
+    {
+        "id": "f1155c5a71256f0e",
+        "type": "function",
+        "z": "68cf048d249c08e9",
+        "name": "Build Tag List (depuis registry)",
+        "func": "\n// ===================================================================\n// Liste des 45 tags generee automatiquement depuis:\n//   - kepserverex_tags_import.csv (tes vrais noms de tags KEPServerEX)\n//   - tag_mapping_registry.csv (mapping vers les topics MQTT)\n// ===================================================================\n\n// >>> A ADAPTER : mets ici le vrai nom de ton Channel et Device\n// (visible dans l'arborescence de KEPServerEX, ex: \"Simulator.Sim1\")\nvar CHANNEL_DEVICE = \"Circuit_Broyage.Broyeur_Boulets\";\n\nvar tagNames = [\"Feed_Solid_Flow\", \"Feed_BPL\", \"Feed_P80\", \"Feed_Solid_Fraction\", \"Process_Water_Solid_Flow\", \"Process_Water_Solid_Fraction\", \"Cyclone_Feed_Solid_Flow\", \"Cyclone_Feed_BPL\", \"Cyclone_Feed_P80\", \"Cyclone_Feed_Solid_Fraction\", \"Output_Slurry_Solid_Flow\", \"Output_Slurry_BPL\", \"Output_Slurry_P80\", \"Output_Slurry_Solid_Fraction\", \"Cyclone_Underflow_Solid_Flow\", \"Cyclone_Underflow_BPL\", \"Cyclone_Underflow_P80\", \"Cyclone_Underflow_Solid_Fraction\", \"Ball_Mill_Discharge_Solid_Flow\", \"Ball_Mill_Discharge_BPL\", \"Ball_Mill_Discharge_P80\", \"Ball_Mill_Discharge_Solid_Fraction\", \"Circulating_Load_Ratio_pct\", \"Mill_Reduction_Ratio\", \"Ambient_Temp_C\", \"PB001_Level_pct\", \"PB001_Level_Setpoint_pct\", \"PB001_Sump_Temp_C\", \"SP001_Motor_Current_A\", \"SP001_Motor_Power_kW\", \"SP001_Discharge_Pressure_kPa\", \"SP001_Speed_RPM\", \"SP001_Bearing_Temp_C\", \"SP001_Vibration_mms\", \"BM001_Power_Draw_kW\", \"BM001_Motor_Current_A\", \"BM001_Mill_Speed_pctCritical\", \"BM001_Bearing_DE_Temp_C\", \"BM001_Bearing_NDE_Temp_C\", \"BM001_Vibration_mms\", \"BM001_Sound_Level_dB\", \"CY001_Inlet_Pressure_kPa\", \"CY001_Vortex_DP_kPa\", \"CY001_Apex_Wear_Index_pct\", \"CY001_Cyclones_Online\"];\n\nvar tagList = tagNames.map(function(name) {\n    return {\n        nodeId: \"ns=2;s=\" + CHANNEL_DEVICE + \".\" + name,\n        datatype: {\"Feed_Solid_Flow\": \"Double\", \"Feed_BPL\": \"Double\", \"Feed_P80\": \"Double\", \"Feed_Solid_Fraction\": \"Double\", \"Process_Water_Solid_Flow\": \"Double\", \"Process_Water_Solid_Fraction\": \"Double\", \"Cyclone_Feed_Solid_Flow\": \"Double\", \"Cyclone_Feed_BPL\": \"Double\", \"Cyclone_Feed_P80\": \"Double\", \"Cyclone_Feed_Solid_Fraction\": \"Double\", \"Output_Slurry_Solid_Flow\": \"Double\", \"Output_Slurry_BPL\": \"Double\", \"Output_Slurry_P80\": \"Double\", \"Output_Slurry_Solid_Fraction\": \"Double\", \"Cyclone_Underflow_Solid_Flow\": \"Double\", \"Cyclone_Underflow_BPL\": \"Double\", \"Cyclone_Underflow_P80\": \"Double\", \"Cyclone_Underflow_Solid_Fraction\": \"Double\", \"Ball_Mill_Discharge_Solid_Flow\": \"Double\", \"Ball_Mill_Discharge_BPL\": \"Double\", \"Ball_Mill_Discharge_P80\": \"Double\", \"Ball_Mill_Discharge_Solid_Fraction\": \"Double\", \"Circulating_Load_Ratio_pct\": \"Double\", \"Mill_Reduction_Ratio\": \"Double\", \"Ambient_Temp_C\": \"Double\", \"PB001_Level_pct\": \"Double\", \"PB001_Level_Setpoint_pct\": \"Double\", \"PB001_Sump_Temp_C\": \"Double\", \"SP001_Motor_Current_A\": \"Double\", \"SP001_Motor_Power_kW\": \"Double\", \"SP001_Discharge_Pressure_kPa\": \"Double\", \"SP001_Speed_RPM\": \"Double\", \"SP001_Bearing_Temp_C\": \"Double\", \"SP001_Vibration_mms\": \"Double\", \"BM001_Power_Draw_kW\": \"Double\", \"BM001_Motor_Current_A\": \"Double\", \"BM001_Mill_Speed_pctCritical\": \"Double\", \"BM001_Bearing_DE_Temp_C\": \"Double\", \"BM001_Bearing_NDE_Temp_C\": \"Double\", \"BM001_Vibration_mms\": \"Double\", \"BM001_Sound_Level_dB\": \"Double\", \"CY001_Inlet_Pressure_kPa\": \"Double\", \"CY001_Vortex_DP_kPa\": \"Double\", \"CY001_Apex_Wear_Index_pct\": \"Double\", \"CY001_Cyclones_Online\": \"Double\"}[name]\n    };\n});\n\n// Registre complet nodeId -> infos MQTT (recalcule avec le bon CHANNEL_DEVICE)\nvar registryTemplate = {\n  \"ns=2;s=Circuit_Broyage.Broyeur_Boulets.Feed_Solid_Flow\": {\n    \"mqtt_topic\": \"plant/grinding/PB001/process/in/solid_flow\",\n    \"tag_id\": \"PB001.IN.SolidFlow\",\n    \"kep_tag_name\": \"Feed_Solid_Flow\",\n    \"equipment\": \"PB_001\",\n    \"parameter\": \"Solid Flow\",\n    \"unit\": \"t/h\",\n    \"domain\": \"process\"\n  },\n  \"ns=2;s=Circuit_Broyage.Broyeur_Boulets.Feed_BPL\": {\n    \"mqtt_topic\": \"plant/grinding/PB001/process/in/bpl\",\n    \"tag_id\": \"PB001.IN.BPL\",\n    \"kep_tag_name\": \"Feed_BPL\",\n    \"equipment\": \"PB_001\",\n    \"parameter\": \"Grade (BPL)\",\n    \"unit\": \"%\",\n    \"domain\": \"process\"\n  },\n  \"ns=2;s=Circuit_Broyage.Broyeur_Boulets.Feed_P80\": {\n    \"mqtt_topic\": \"plant/grinding/PB001/process/in/p80\",\n    \"tag_id\": \"PB001.IN.P80\",\n    \"kep_tag_name\": \"Feed_P80\",\n    \"equipment\": \"PB_001\",\n    \"parameter\": \"P80\",\n    \"unit\": \"um\",\n    \"domain\": \"process\"\n  },\n  \"ns=2;s=Circuit_Broyage.Broyeur_Boulets.Feed_Solid_Fraction\": {\n    \"mqtt_topic\": \"plant/grinding/PB001/process/in/solid_fraction\",\n    \"tag_id\": \"PB001.IN.SolidFraction\",\n    \"kep_tag_name\": \"Feed_Solid_Fraction\",\n    \"equipment\": \"PB_001\",\n    \"parameter\": \"Solid Fraction\",\n    \"unit\": \"%\",\n    \"domain\": \"process\"\n  },\n  \"ns=2;s=Circuit_Broyage.Broyeur_Boulets.Process_Water_Solid_Flow\": {\n    \"mqtt_topic\": \"plant/grinding/PB001/process/water/solid_flow\",\n    \"tag_id\": \"PB001.WATER.SolidFlow\",\n    \"kep_tag_name\": \"Process_Water_Solid_Flow\",\n    \"equipment\": \"PB_001\",\n    \"parameter\": \"Solid Flow\",\n    \"unit\": \"t/h\",\n    \"domain\": \"process\"\n  },\n  \"ns=2;s=Circuit_Broyage.Broyeur_Boulets.Process_Water_Solid_Fraction\": {\n    \"mqtt_topic\": \"plant/grinding/PB001/process/water/solid_fraction\",\n    \"tag_id\": \"PB001.WATER.SolidFraction\",\n    \"kep_tag_name\": \"Process_Water_Solid_Fraction\",\n    \"equipment\": \"PB_001\",\n    \"parameter\": \"Solid Fraction\",\n    \"unit\": \"%\",\n    \"domain\": \"process\"\n  },\n  \"ns=2;s=Circuit_Broyage.Broyeur_Boulets.Cyclone_Feed_Solid_Flow\": {\n    \"mqtt_topic\": \"plant/grinding/CY001/process/feed/solid_flow\",\n    \"tag_id\": \"CY001.FEED.SolidFlow\",\n    \"kep_tag_name\": \"Cyclone_Feed_Solid_Flow\",\n    \"equipment\": \"CY_001\",\n    \"parameter\": \"Solid Flow\",\n    \"unit\": \"t/h\",\n    \"domain\": \"process\"\n  },\n  \"ns=2;s=Circuit_Broyage.Broyeur_Boulets.Cyclone_Feed_BPL\": {\n    \"mqtt_topic\": \"plant/grinding/CY001/process/feed/bpl\",\n    \"tag_id\": \"CY001.FEED.BPL\",\n    \"kep_tag_name\": \"Cyclone_Feed_BPL\",\n    \"equipment\": \"CY_001\",\n    \"parameter\": \"Grade (BPL)\",\n    \"unit\": \"%\",\n    \"domain\": \"process\"\n  },\n  \"ns=2;s=Circuit_Broyage.Broyeur_Boulets.Cyclone_Feed_P80\": {\n    \"mqtt_topic\": \"plant/grinding/CY001/process/feed/p80\",\n    \"tag_id\": \"CY001.FEED.P80\",\n    \"kep_tag_name\": \"Cyclone_Feed_P80\",\n    \"equipment\": \"CY_001\",\n    \"parameter\": \"P80\",\n    \"unit\": \"um\",\n    \"domain\": \"process\"\n  },\n  \"ns=2;s=Circuit_Broyage.Broyeur_Boulets.Cyclone_Feed_Solid_Fraction\": {\n    \"mqtt_topic\": \"plant/grinding/CY001/process/feed/solid_fraction\",\n    \"tag_id\": \"CY001.FEED.SolidFraction\",\n    \"kep_tag_name\": \"Cyclone_Feed_Solid_Fraction\",\n    \"equipment\": \"CY_001\",\n    \"parameter\": \"Solid Fraction\",\n    \"unit\": \"%\",\n    \"domain\": \"process\"\n  },\n  \"ns=2;s=Circuit_Broyage.Broyeur_Boulets.Output_Slurry_Solid_Flow\": {\n    \"mqtt_topic\": \"plant/grinding/CY001/process/overflow/solid_flow\",\n    \"tag_id\": \"CY001.OF.SolidFlow\",\n    \"kep_tag_name\": \"Output_Slurry_Solid_Flow\",\n    \"equipment\": \"CY_001\",\n    \"parameter\": \"Solid Flow\",\n    \"unit\": \"t/h\",\n    \"domain\": \"process\"\n  },\n  \"ns=2;s=Circuit_Broyage.Broyeur_Boulets.Output_Slurry_BPL\": {\n    \"mqtt_topic\": \"plant/grinding/CY001/process/overflow/bpl\",\n    \"tag_id\": \"CY001.OF.BPL\",\n    \"kep_tag_name\": \"Output_Slurry_BPL\",\n    \"equipment\": \"CY_001\",\n    \"parameter\": \"Grade (BPL)\",\n    \"unit\": \"%\",\n    \"domain\": \"process\"\n  },\n  \"ns=2;s=Circuit_Broyage.Broyeur_Boulets.Output_Slurry_P80\": {\n    \"mqtt_topic\": \"plant/grinding/CY001/process/overflow/p80\",\n    \"tag_id\": \"CY001.OF.P80\",\n    \"kep_tag_name\": \"Output_Slurry_P80\",\n    \"equipment\": \"CY_001\",\n    \"parameter\": \"P80\",\n    \"unit\": \"um\",\n    \"domain\": \"process\"\n  },\n  \"ns=2;s=Circuit_Broyage.Broyeur_Boulets.Output_Slurry_Solid_Fraction\": {\n    \"mqtt_topic\": \"plant/grinding/CY001/process/overflow/solid_fraction\",\n    \"tag_id\": \"CY001.OF.SolidFraction\",\n    \"kep_tag_name\": \"Output_Slurry_Solid_Fraction\",\n    \"equipment\": \"CY_001\",\n    \"parameter\": \"Solid Fraction\",\n    \"unit\": \"%\",\n    \"domain\": \"process\"\n  },\n  \"ns=2;s=Circuit_Broyage.Broyeur_Boulets.Cyclone_Underflow_Solid_Flow\": {\n    \"mqtt_topic\": \"plant/grinding/CY001/process/underflow/solid_flow\",\n    \"tag_id\": \"CY001.UF.SolidFlow\",\n    \"kep_tag_name\": \"Cyclone_Underflow_Solid_Flow\",\n    \"equipment\": \"CY_001\",\n    \"parameter\": \"Solid Flow\",\n    \"unit\": \"t/h\",\n    \"domain\": \"process\"\n  },\n  \"ns=2;s=Circuit_Broyage.Broyeur_Boulets.Cyclone_Underflow_BPL\": {\n    \"mqtt_topic\": \"plant/grinding/CY001/process/underflow/bpl\",\n    \"tag_id\": \"CY001.UF.BPL\",\n    \"kep_tag_name\": \"Cyclone_Underflow_BPL\",\n    \"equipment\": \"CY_001\",\n    \"parameter\": \"Grade (BPL)\",\n    \"unit\": \"%\",\n    \"domain\": \"process\"\n  },\n  \"ns=2;s=Circuit_Broyage.Broyeur_Boulets.Cyclone_Underflow_P80\": {\n    \"mqtt_topic\": \"plant/grinding/CY001/process/underflow/p80\",\n    \"tag_id\": \"CY001.UF.P80\",\n    \"kep_tag_name\": \"Cyclone_Underflow_P80\",\n    \"equipment\": \"CY_001\",\n    \"parameter\": \"P80\",\n    \"unit\": \"um\",\n    \"domain\": \"process\"\n  },\n  \"ns=2;s=Circuit_Broyage.Broyeur_Boulets.Cyclone_Underflow_Solid_Fraction\": {\n    \"mqtt_topic\": \"plant/grinding/CY001/process/underflow/solid_fraction\",\n    \"tag_id\": \"CY001.UF.SolidFraction\",\n    \"kep_tag_name\": \"Cyclone_Underflow_Solid_Fraction\",\n    \"equipment\": \"CY_001\",\n    \"parameter\": \"Solid Fraction\",\n    \"unit\": \"%\",\n    \"domain\": \"process\"\n  },\n  \"ns=2;s=Circuit_Broyage.Broyeur_Boulets.Ball_Mill_Discharge_Solid_Flow\": {\n    \"mqtt_topic\": \"plant/grinding/BM001/process/discharge/solid_flow\",\n    \"tag_id\": \"BM001.DISCH.SolidFlow\",\n    \"kep_tag_name\": \"Ball_Mill_Discharge_Solid_Flow\",\n    \"equipment\": \"BM_001\",\n    \"parameter\": \"Solid Flow\",\n    \"unit\": \"t/h\",\n    \"domain\": \"process\"\n  },\n  \"ns=2;s=Circuit_Broyage.Broyeur_Boulets.Ball_Mill_Discharge_BPL\": {\n    \"mqtt_topic\": \"plant/grinding/BM001/process/discharge/bpl\",\n    \"tag_id\": \"BM001.DISCH.BPL\",\n    \"kep_tag_name\": \"Ball_Mill_Discharge_BPL\",\n    \"equipment\": \"BM_001\",\n    \"parameter\": \"Grade (BPL)\",\n    \"unit\": \"%\",\n    \"domain\": \"process\"\n  },\n  \"ns=2;s=Circuit_Broyage.Broyeur_Boulets.Ball_Mill_Discharge_P80\": {\n    \"mqtt_topic\": \"plant/grinding/BM001/process/discharge/p80\",\n    \"tag_id\": \"BM001.DISCH.P80\",\n    \"kep_tag_name\": \"Ball_Mill_Discharge_P80\",\n    \"equipment\": \"BM_001\",\n    \"parameter\": \"P80\",\n    \"unit\": \"um\",\n    \"domain\": \"process\"\n  },\n  \"ns=2;s=Circuit_Broyage.Broyeur_Boulets.Ball_Mill_Discharge_Solid_Fraction\": {\n    \"mqtt_topic\": \"plant/grinding/BM001/process/discharge/solid_fraction\",\n    \"tag_id\": \"BM001.DISCH.SolidFraction\",\n    \"kep_tag_name\": \"Ball_Mill_Discharge_Solid_Fraction\",\n    \"equipment\": \"BM_001\",\n    \"parameter\": \"Solid Fraction\",\n    \"unit\": \"%\",\n    \"domain\": \"process\"\n  },\n  \"ns=2;s=Circuit_Broyage.Broyeur_Boulets.Circulating_Load_Ratio_pct\": {\n    \"mqtt_topic\": \"plant/grinding/circuit/process/kpi/circulating_load\",\n    \"tag_id\": \"CIRCUIT.KPI.CirculatingLoad\",\n    \"kep_tag_name\": \"Circulating_Load_Ratio_pct\",\n    \"equipment\": \"CIRCUIT\",\n    \"parameter\": \"Circulating Load Ratio\",\n    \"unit\": \"%\",\n    \"domain\": \"process\"\n  },\n  \"ns=2;s=Circuit_Broyage.Broyeur_Boulets.Mill_Reduction_Ratio\": {\n    \"mqtt_topic\": \"plant/grinding/circuit/process/kpi/reduction_ratio\",\n    \"tag_id\": \"CIRCUIT.KPI.ReductionRatio\",\n    \"kep_tag_name\": \"Mill_Reduction_Ratio\",\n    \"equipment\": \"CIRCUIT\",\n    \"parameter\": \"Reduction Ratio\",\n    \"unit\": \"ratio\",\n    \"domain\": \"process\"\n  },\n  \"ns=2;s=Circuit_Broyage.Broyeur_Boulets.Ambient_Temp_C\": {\n    \"mqtt_topic\": \"plant/grinding/circuit/health/env/ambient_temp\",\n    \"tag_id\": \"CIRCUIT.ENV.AmbientTemp\",\n    \"kep_tag_name\": \"Ambient_Temp_C\",\n    \"equipment\": \"CIRCUIT\",\n    \"parameter\": \"Ambient Temperature\",\n    \"unit\": \"degC\",\n    \"domain\": \"health\"\n  },\n  \"ns=2;s=Circuit_Broyage.Broyeur_Boulets.PB001_Level_pct\": {\n    \"mqtt_topic\": \"plant/grinding/PB001/health/level\",\n    \"tag_id\": \"PB001.HEALTH.Level\",\n    \"kep_tag_name\": \"PB001_Level_pct\",\n    \"equipment\": \"PB_001\",\n    \"parameter\": \"Sump Level\",\n    \"unit\": \"%\",\n    \"domain\": \"health\"\n  },\n  \"ns=2;s=Circuit_Broyage.Broyeur_Boulets.PB001_Level_Setpoint_pct\": {\n    \"mqtt_topic\": \"plant/grinding/PB001/health/level_setpoint\",\n    \"tag_id\": \"PB001.HEALTH.LevelSetpoint\",\n    \"kep_tag_name\": \"PB001_Level_Setpoint_pct\",\n    \"equipment\": \"PB_001\",\n    \"parameter\": \"Sump Level Setpoint\",\n    \"unit\": \"%\",\n    \"domain\": \"health\"\n  },\n  \"ns=2;s=Circuit_Broyage.Broyeur_Boulets.PB001_Sump_Temp_C\": {\n    \"mqtt_topic\": \"plant/grinding/PB001/health/sump_temp\",\n    \"tag_id\": \"PB001.HEALTH.SumpTemp\",\n    \"kep_tag_name\": \"PB001_Sump_Temp_C\",\n    \"equipment\": \"PB_001\",\n    \"parameter\": \"Sump Temperature\",\n    \"unit\": \"degC\",\n    \"domain\": \"health\"\n  },\n  \"ns=2;s=Circuit_Broyage.Broyeur_Boulets.SP001_Motor_Current_A\": {\n    \"mqtt_topic\": \"plant/grinding/SP001/health/motor_current\",\n    \"tag_id\": \"SP001.HEALTH.MotorCurrent\",\n    \"kep_tag_name\": \"SP001_Motor_Current_A\",\n    \"equipment\": \"SP_001\",\n    \"parameter\": \"Motor Current\",\n    \"unit\": \"A\",\n    \"domain\": \"health\"\n  },\n  \"ns=2;s=Circuit_Broyage.Broyeur_Boulets.SP001_Motor_Power_kW\": {\n    \"mqtt_topic\": \"plant/grinding/SP001/health/motor_power\",\n    \"tag_id\": \"SP001.HEALTH.MotorPower\",\n    \"kep_tag_name\": \"SP001_Motor_Power_kW\",\n    \"equipment\": \"SP_001\",\n    \"parameter\": \"Motor Power\",\n    \"unit\": \"kW\",\n    \"domain\": \"health\"\n  },\n  \"ns=2;s=Circuit_Broyage.Broyeur_Boulets.SP001_Discharge_Pressure_kPa\": {\n    \"mqtt_topic\": \"plant/grinding/SP001/health/discharge_pressure\",\n    \"tag_id\": \"SP001.HEALTH.DischargePressure\",\n    \"kep_tag_name\": \"SP001_Discharge_Pressure_kPa\",\n    \"equipment\": \"SP_001\",\n    \"parameter\": \"Discharge Pressure\",\n    \"unit\": \"kPa\",\n    \"domain\": \"health\"\n  },\n  \"ns=2;s=Circuit_Broyage.Broyeur_Boulets.SP001_Speed_RPM\": {\n    \"mqtt_topic\": \"plant/grinding/SP001/health/speed\",\n    \"tag_id\": \"SP001.HEALTH.Speed\",\n    \"kep_tag_name\": \"SP001_Speed_RPM\",\n    \"equipment\": \"SP_001\",\n    \"parameter\": \"Pump Speed\",\n    \"unit\": \"RPM\",\n    \"domain\": \"health\"\n  },\n  \"ns=2;s=Circuit_Broyage.Broyeur_Boulets.SP001_Bearing_Temp_C\": {\n    \"mqtt_topic\": \"plant/grinding/SP001/health/bearing_temp\",\n    \"tag_id\": \"SP001.HEALTH.BearingTemp\",\n    \"kep_tag_name\": \"SP001_Bearing_Temp_C\",\n    \"equipment\": \"SP_001\",\n    \"parameter\": \"Bearing Temperature\",\n    \"unit\": \"degC\",\n    \"domain\": \"health\"\n  },\n  \"ns=2;s=Circuit_Broyage.Broyeur_Boulets.SP001_Vibration_mms\": {\n    \"mqtt_topic\": \"plant/grinding/SP001/health/vibration\",\n    \"tag_id\": \"SP001.HEALTH.Vibration\",\n    \"kep_tag_name\": \"SP001_Vibration_mms\",\n    \"equipment\": \"SP_001\",\n    \"parameter\": \"Vibration (trended RMS)\",\n    \"unit\": \"mm/s\",\n    \"domain\": \"health\"\n  },\n  \"ns=2;s=Circuit_Broyage.Broyeur_Boulets.BM001_Power_Draw_kW\": {\n    \"mqtt_topic\": \"plant/grinding/BM001/health/power_draw\",\n    \"tag_id\": \"BM001.HEALTH.PowerDraw\",\n    \"kep_tag_name\": \"BM001_Power_Draw_kW\",\n    \"equipment\": \"BM_001\",\n    \"parameter\": \"Power Draw\",\n    \"unit\": \"kW\",\n    \"domain\": \"health\"\n  },\n  \"ns=2;s=Circuit_Broyage.Broyeur_Boulets.BM001_Motor_Current_A\": {\n    \"mqtt_topic\": \"plant/grinding/BM001/health/motor_current\",\n    \"tag_id\": \"BM001.HEALTH.MotorCurrent\",\n    \"kep_tag_name\": \"BM001_Motor_Current_A\",\n    \"equipment\": \"BM_001\",\n    \"parameter\": \"Motor Current\",\n    \"unit\": \"A\",\n    \"domain\": \"health\"\n  },\n  \"ns=2;s=Circuit_Broyage.Broyeur_Boulets.BM001_Mill_Speed_pctCritical\": {\n    \"mqtt_topic\": \"plant/grinding/BM001/health/speed_pct_critical\",\n    \"tag_id\": \"BM001.HEALTH.SpeedPctCritical\",\n    \"kep_tag_name\": \"BM001_Mill_Speed_pctCritical\",\n    \"equipment\": \"BM_001\",\n    \"parameter\": \"Mill Speed\",\n    \"unit\": \"% of critical\",\n    \"domain\": \"health\"\n  },\n  \"ns=2;s=Circuit_Broyage.Broyeur_Boulets.BM001_Bearing_DE_Temp_C\": {\n    \"mqtt_topic\": \"plant/grinding/BM001/health/bearing_de_temp\",\n    \"tag_id\": \"BM001.HEALTH.BearingDETemp\",\n    \"kep_tag_name\": \"BM001_Bearing_DE_Temp_C\",\n    \"equipment\": \"BM_001\",\n    \"parameter\": \"Bearing Temp (Drive End)\",\n    \"unit\": \"degC\",\n    \"domain\": \"health\"\n  },\n  \"ns=2;s=Circuit_Broyage.Broyeur_Boulets.BM001_Bearing_NDE_Temp_C\": {\n    \"mqtt_topic\": \"plant/grinding/BM001/health/bearing_nde_temp\",\n    \"tag_id\": \"BM001.HEALTH.BearingNDETemp\",\n    \"kep_tag_name\": \"BM001_Bearing_NDE_Temp_C\",\n    \"equipment\": \"BM_001\",\n    \"parameter\": \"Bearing Temp (Non-Drive End)\",\n    \"unit\": \"degC\",\n    \"domain\": \"health\"\n  },\n  \"ns=2;s=Circuit_Broyage.Broyeur_Boulets.BM001_Vibration_mms\": {\n    \"mqtt_topic\": \"plant/grinding/BM001/health/vibration\",\n    \"tag_id\": \"BM001.HEALTH.Vibration\",\n    \"kep_tag_name\": \"BM001_Vibration_mms\",\n    \"equipment\": \"BM_001\",\n    \"parameter\": \"Vibration (trended RMS)\",\n    \"unit\": \"mm/s\",\n    \"domain\": \"health\"\n  },\n  \"ns=2;s=Circuit_Broyage.Broyeur_Boulets.BM001_Sound_Level_dB\": {\n    \"mqtt_topic\": \"plant/grinding/BM001/health/sound_level\",\n    \"tag_id\": \"BM001.HEALTH.SoundLevel\",\n    \"kep_tag_name\": \"BM001_Sound_Level_dB\",\n    \"equipment\": \"BM_001\",\n    \"parameter\": \"Sound Level\",\n    \"unit\": \"dB\",\n    \"domain\": \"health\"\n  },\n  \"ns=2;s=Circuit_Broyage.Broyeur_Boulets.CY001_Inlet_Pressure_kPa\": {\n    \"mqtt_topic\": \"plant/grinding/CY001/health/inlet_pressure\",\n    \"tag_id\": \"CY001.HEALTH.InletPressure\",\n    \"kep_tag_name\": \"CY001_Inlet_Pressure_kPa\",\n    \"equipment\": \"CY_001\",\n    \"parameter\": \"Inlet Pressure\",\n    \"unit\": \"kPa\",\n    \"domain\": \"health\"\n  },\n  \"ns=2;s=Circuit_Broyage.Broyeur_Boulets.CY001_Vortex_DP_kPa\": {\n    \"mqtt_topic\": \"plant/grinding/CY001/health/vortex_dp\",\n    \"tag_id\": \"CY001.HEALTH.VortexDP\",\n    \"kep_tag_name\": \"CY001_Vortex_DP_kPa\",\n    \"equipment\": \"CY_001\",\n    \"parameter\": \"Vortex Differential Pressure\",\n    \"unit\": \"kPa\",\n    \"domain\": \"health\"\n  },\n  \"ns=2;s=Circuit_Broyage.Broyeur_Boulets.CY001_Apex_Wear_Index_pct\": {\n    \"mqtt_topic\": \"plant/grinding/CY001/health/apex_wear\",\n    \"tag_id\": \"CY001.HEALTH.ApexWear\",\n    \"kep_tag_name\": \"CY001_Apex_Wear_Index_pct\",\n    \"equipment\": \"CY_001\",\n    \"parameter\": \"Apex Wear Index\",\n    \"unit\": \"%\",\n    \"domain\": \"health\"\n  },\n  \"ns=2;s=Circuit_Broyage.Broyeur_Boulets.CY001_Cyclones_Online\": {\n    \"mqtt_topic\": \"plant/grinding/CY001/health/cyclones_online\",\n    \"tag_id\": \"CY001.HEALTH.CyclonesOnline\",\n    \"kep_tag_name\": \"CY001_Cyclones_Online\",\n    \"equipment\": \"CY_001\",\n    \"parameter\": \"Cyclones Online\",\n    \"unit\": \"count\",\n    \"domain\": \"health\"\n  }\n};\nvar registry = {};\nObject.keys(registryTemplate).forEach(function(oldNodeId) {\n    var info = registryTemplate[oldNodeId];\n    var newNodeId = \"ns=2;s=\" + CHANNEL_DEVICE + \".\" + info.kep_tag_name;\n    registry[newNodeId] = info;\n});\nglobal.set('tagRegistry', registry);\n\nmsg.topic = \"multiple\";\nmsg.payload = tagList;\nreturn msg;\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 420,
+        "y": 120,
+        "wires": [
+            [
+                "18b300afaccfac98"
+            ]
+        ]
+    },
+    {
+        "id": "18b300afaccfac98",
+        "type": "OpcUa-Client",
+        "z": "68cf048d249c08e9",
+        "endpoint": "cc34a92ece520928",
+        "action": "subscribe",
+        "time": "10",
+        "timeUnit": "s",
+        "name": "KEPServerEX - Subscribe (multi)",
+        "x": 700,
+        "y": 120,
+        "wires": [
+            [
+                "def0a85dfd0def5e",
+                "182fa1346bfb4edc"
+            ],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "def0a85dfd0def5e",
+        "type": "function",
+        "z": "68cf048d249c08e9",
+        "name": "Map Tag -> Topic MQTT",
+        "func": "// Retrouve le nodeId de la valeur qui vient de changer, et extrait la\n// vraie valeur numerique (le palette OPC UA peut renvoyer soit un nombre\n// brut, soit un objet imbrique type DataValue: { value: { value: X, dataType: Y }, statusCode, ... }).\n//\n// IMPORTANT: le format du payload DOIT matcher exactement ce que le backend\n// FastAPI attend (voir backend/app/domains/telemetry/subscriber.py) :\n// le champ \"tag_id\" est utilise comme cle principale pour indexer les\n// donnees live et l'historique. Sans lui, les donnees arrivent sur le bon\n// topic MQTT mais restent invisibles cote frontend/API.\n\nvar registry = global.get('tagRegistry') || {};\n\nfunction extractValue(payload) {\n    if (payload === null || payload === undefined) return null;\n    if (typeof payload === 'number' || typeof payload === 'boolean' || typeof payload === 'string') {\n        return payload;\n    }\n    if (typeof payload === 'object') {\n        var v = payload.value;\n        if (v && typeof v === 'object' && 'value' in v) {\n            return v.value; // DataValue -> Variant -> value\n        }\n        if (v !== undefined) return v; // Variant direct\n    }\n    return payload;\n}\n\nfunction buildOut(nodeId, rawValue, quality) {\n    var info = registry[nodeId];\n    if (!info) return null;\n    var out = {};\n    out.topic = info.mqtt_topic;\n    out.payload = JSON.stringify({\n        tag_id: info.tag_id,\n        value: extractValue(rawValue),\n        unit: info.unit,\n        timestamp: new Date().toISOString(),\n        quality: quality || \"Good\",\n        domain: info.domain,\n        source: \"nodered_opcua\"\n    });\n    out.qos = 0;\n    out.retain = false;\n    return out;\n}\n\nvar results = [];\n\nif (Array.isArray(msg.payload)) {\n    msg.payload.forEach(function(item) {\n        var nodeId = item.nodeId || item.name;\n        var out = buildOut(nodeId, item.value !== undefined ? item.value : item, item.statusCode && item.statusCode.name);\n        if (out) results.push(out);\n    });\n} else if (msg.topic && registry[msg.topic]) {\n    var out = buildOut(msg.topic, msg.payload, msg.status);\n    if (out) results.push(out);\n}\n\nif (results.length === 0) {\n    node.warn(\"Tag non reconnu - verifier CHANNEL_DEVICE dans 'Build Tag List' et regarder le debug 'Raw OPC UA output'\");\n    return null;\n}\n\nreturn [results];",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 700,
+        "y": 220,
+        "wires": [
+            [
+                "0e07a5f0a5fc820e",
+                "7533b4b34d54711c"
+            ]
+        ]
+    },
+    {
+        "id": "0e07a5f0a5fc820e",
+        "type": "mqtt out",
+        "z": "68cf048d249c08e9",
+        "name": "Publish -> Mosquitto",
+        "topic": "",
+        "qos": "0",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "1453de9140fa3beb",
+        "x": 980,
+        "y": 220,
+        "wires": []
+    },
+    {
+        "id": "182fa1346bfb4edc",
+        "type": "debug",
+        "z": "68cf048d249c08e9",
+        "name": "Raw OPC UA output (pour verifier le format)",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 700,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "7533b4b34d54711c",
+        "type": "debug",
+        "z": "68cf048d249c08e9",
+        "name": "MQTT payload envoye",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 980,
+        "y": 280,
+        "wires": []
+    },
+    {
+        "id": "ff203fa7e2e18d8a",
+        "type": "inject",
+        "z": "68cf048d249c08e9",
+        "name": "TEST - 1 seul tag (Ambient_Temp_C)",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "ns=2;s=Circuit_Broyage.Broyeur_Boulets.Ambient_Temp_C",
+        "payload": "",
+        "payloadType": "str",
+        "x": 250,
+        "y": 420,
+        "wires": [
+            [
+                "18b300afaccfac98"
+            ]
+        ]
+    },
+    {
+        "id": "2900c88f264b687a",
+        "type": "debug",
+        "z": "68cf048d249c08e9",
+        "name": "TEST debug (tag unique)",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 250,
+        "y": 480,
+        "wires": []
+    }
+]

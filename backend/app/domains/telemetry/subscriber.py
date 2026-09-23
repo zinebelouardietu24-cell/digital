@@ -8,6 +8,7 @@ from typing import Dict, Any, List, Optional
 import paho.mqtt.client as mqtt
 
 from app.core.config import settings
+from app.domains.telemetry.historian import TelemetryHistorian
 
 logger = logging.getLogger(__name__)
 
@@ -17,16 +18,27 @@ class MQTTSubscriberService:
     and rolling history for digital twin telemetry consumption.
     """
 
-    def __init__(self, host: Optional[str] = None, port: Optional[int] = None, topic_prefix: str = "plant/grinding/#"):
+    def __init__(self, host: Optional[str] = None, port: Optional[int] = None, topic_prefix: str = "plant/grinding/#",
+                 historian: Optional[TelemetryHistorian] = None):
         self.host = host or settings.MQTT_BROKER_HOST
         self.port = port or settings.MQTT_BROKER_PORT
         self.topic_prefix = topic_prefix
+        self.historian = historian
 
         self._latest_tags: Dict[str, Dict[str, Any]] = {}
         self._latest_tags_by_source: Dict[str, Dict[str, Dict[str, Any]]] = defaultdict(dict)
         self._topic_map: Dict[str, Dict[str, Any]] = {}
         self._history: Dict[str, deque] = defaultdict(lambda: deque(maxlen=100))
         self._lock = threading.Lock()
+
+        if self.historian:
+            # Restaure l'historique récent enregistré avant le dernier arrêt.
+            try:
+                for tag_id, items in self.historian.recent_by_tag(per_tag=100).items():
+                    self._history[tag_id].extend(items)
+                logger.info("Restored history for %d tags from historian.", len(self._history))
+            except Exception as e:
+                logger.warning(f"Could not restore history from historian: {e}")
 
         self.client: Optional[mqtt.Client] = None
         self._connected = False
@@ -82,6 +94,9 @@ class MQTTSubscriberService:
                     self._latest_tags[tag_id] = payload
                     self._latest_tags_by_source[source][tag_id] = payload
                     self._history[tag_id].append(payload)
+
+            if self.historian:
+                self.historian.record(topic, payload)
         except Exception as e:
             logger.debug(f"Error processing MQTT message on topic {msg.topic}: {e}")
 

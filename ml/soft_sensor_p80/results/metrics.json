@@ -1,0 +1,280 @@
+{
+  "target": "Output Slurry P80",
+  "n_rows": 2880,
+  "period": [
+    "2026-07-01 00:00:00",
+    "2026-07-30 23:45:00"
+  ],
+  "target_stats": {
+    "count": 2880.0,
+    "mean": 142.747,
+    "std": 3.668,
+    "min": 135.738,
+    "25%": 140.108,
+    "50%": 141.785,
+    "75%": 146.723,
+    "max": 149.908
+  },
+  "scenarios": [
+    {
+      "name": "A - capteurs en ligne",
+      "features": [
+        "Feed Solid Flow",
+        "Feed Solid Fraction",
+        "Process Water Solid Flow",
+        "Cyclone Feed Solid Flow",
+        "Cyclone Feed Solid Fraction",
+        "Cyclone Underflow Solid Flow",
+        "Cyclone Underflow Solid Fraction",
+        "Ball Mill Discharge Solid Flow",
+        "Ball Mill Discharge Solid Fraction",
+        "Output Slurry Solid Flow",
+        "Output Slurry Solid Fraction",
+        "Ambient_Temp_C",
+        "PB001_Level_pct",
+        "PB001_Level_Setpoint_pct",
+        "PB001_Sump_Temp_C",
+        "SP001_Motor_Current_A",
+        "SP001_Motor_Power_kW",
+        "SP001_Discharge_Pressure_kPa",
+        "SP001_Speed_RPM",
+        "SP001_Bearing_Temp_C",
+        "SP001_Vibration_mms",
+        "BM001_Power_Draw_kW",
+        "BM001_Motor_Current_A",
+        "BM001_Mill_Speed_pctCritical",
+        "BM001_Bearing_DE_Temp_C",
+        "BM001_Bearing_NDE_Temp_C",
+        "BM001_Vibration_mms",
+        "BM001_Sound_Level_dB",
+        "CY001_Inlet_Pressure_kPa",
+        "CY001_Vortex_DP_kPa",
+        "CY001_Apex_Wear_Index_pct",
+        "CY001_Cyclones_Online"
+      ],
+      "n_features": 32,
+      "n_train": 2015,
+      "n_val": 433,
+      "n_test": 432,
+      "test_period": [
+        "2026-07-26 12:00:00",
+        "2026-07-30 23:45:00"
+      ],
+      "xgb_best_params": {
+        "val_rmse": 0.8511352829726864,
+        "max_depth": 3,
+        "learning_rate": 0.1,
+        "subsample": 1.0,
+        "n_estimators": 51
+      },
+      "test_metrics": {
+        "Moyenne (référence)": {
+          "R2": -0.025066860781588485,
+          "RMSE": 3.916043071775475,
+          "MAE": 3.542155037614283,
+          "MAPE_pct": 2.494649675429689
+        },
+        "Régression Ridge": {
+          "R2": 0.8902273727863866,
+          "RMSE": 1.2814993561453487,
+          "MAE": 1.0016955077296787,
+          "MAPE_pct": 0.7046081367737586
+        },
+        "Random Forest": {
+          "R2": 0.9526398935256193,
+          "RMSE": 0.8417394816542375,
+          "MAE": 0.6720761192919456,
+          "MAPE_pct": 0.4734765025645622
+        },
+        "XGBoost": {
+          "R2": 0.9495630233930251,
+          "RMSE": 0.8686521237569923,
+          "MAE": 0.6688063415936006,
+          "MAPE_pct": 0.4712546901556743
+        }
+      },
+      "xgb_cv": {
+        "R2_mean": 0.9381651426415901,
+        "R2_std": 0.008185555832084154,
+        "RMSE_mean": 0.9251347280762744,
+        "RMSE_std": 0.0589484552378289
+      },
+      "importance": {
+        "Output Slurry Solid Fraction": 0.3551,
+        "Ball Mill Discharge Solid Flow": 0.2275,
+        "Output Slurry Solid Flow": 0.1587,
+        "Feed Solid Flow": 0.1501,
+        "Cyclone Underflow Solid Flow": 0.0647,
+        "Cyclone Feed Solid Flow": 0.0258,
+        "Cyclone Feed Solid Fraction": 0.0038,
+        "BM001_Motor_Current_A": 0.001,
+        "CY001_Inlet_Pressure_kPa": 0.0008,
+        "CY001_Vortex_DP_kPa": 0.0008,
+        "Ambient_Temp_C": 0.0008,
+        "SP001_Vibration_mms": 0.0007,
+        "Feed Solid Fraction": 0.0007,
+        "SP001_Motor_Power_kW": 0.0007,
+        "SP001_Bearing_Temp_C": 0.0007,
+        "CY001_Apex_Wear_Index_pct": 0.0007,
+        "PB001_Level_pct": 0.0007,
+        "SP001_Discharge_Pressure_kPa": 0.0007,
+        "BM001_Bearing_NDE_Temp_C": 0.0006,
+        "BM001_Power_Draw_kW": 0.0006,
+        "BM001_Sound_Level_dB": 0.0006,
+        "SP001_Speed_RPM": 0.0006,
+        "BM001_Mill_Speed_pctCritical": 0.0006,
+        "SP001_Motor_Current_A": 0.0006,
+        "Cyclone Underflow Solid Fraction": 0.0005,
+        "BM001_Vibration_mms": 0.0005,
+        "Ball Mill Discharge Solid Fraction": 0.0005,
+        "PB001_Sump_Temp_C": 0.0005,
+        "BM001_Bearing_DE_Temp_C": 0.0005,
+        "Process Water Solid Flow": 0.0,
+        "PB001_Level_Setpoint_pct": 0.0,
+        "CY001_Cyclones_Online": 0.0
+      },
+      "footprint": {
+        "Random Forest": {
+          "size_MB": 8.211,
+          "latency_ms": 29.211
+        },
+        "XGBoost": {
+          "size_MB": 0.064,
+          "latency_ms": 19.248
+        }
+      }
+    },
+    {
+      "name": "B - capteurs en ligne + caractérisation alimentation",
+      "features": [
+        "Feed Solid Flow",
+        "Feed Solid Fraction",
+        "Process Water Solid Flow",
+        "Cyclone Feed Solid Flow",
+        "Cyclone Feed Solid Fraction",
+        "Cyclone Underflow Solid Flow",
+        "Cyclone Underflow Solid Fraction",
+        "Ball Mill Discharge Solid Flow",
+        "Ball Mill Discharge Solid Fraction",
+        "Output Slurry Solid Flow",
+        "Output Slurry Solid Fraction",
+        "Ambient_Temp_C",
+        "PB001_Level_pct",
+        "PB001_Level_Setpoint_pct",
+        "PB001_Sump_Temp_C",
+        "SP001_Motor_Current_A",
+        "SP001_Motor_Power_kW",
+        "SP001_Discharge_Pressure_kPa",
+        "SP001_Speed_RPM",
+        "SP001_Bearing_Temp_C",
+        "SP001_Vibration_mms",
+        "BM001_Power_Draw_kW",
+        "BM001_Motor_Current_A",
+        "BM001_Mill_Speed_pctCritical",
+        "BM001_Bearing_DE_Temp_C",
+        "BM001_Bearing_NDE_Temp_C",
+        "BM001_Vibration_mms",
+        "BM001_Sound_Level_dB",
+        "CY001_Inlet_Pressure_kPa",
+        "CY001_Vortex_DP_kPa",
+        "CY001_Apex_Wear_Index_pct",
+        "CY001_Cyclones_Online",
+        "Feed P80",
+        "Feed BPL"
+      ],
+      "n_features": 34,
+      "n_train": 2015,
+      "n_val": 433,
+      "n_test": 432,
+      "test_period": [
+        "2026-07-26 12:00:00",
+        "2026-07-30 23:45:00"
+      ],
+      "xgb_best_params": {
+        "val_rmse": 0.8478871073774579,
+        "max_depth": 3,
+        "learning_rate": 0.1,
+        "subsample": 0.8,
+        "n_estimators": 49
+      },
+      "test_metrics": {
+        "Moyenne (référence)": {
+          "R2": -0.025066860781588485,
+          "RMSE": 3.916043071775475,
+          "MAE": 3.542155037614283,
+          "MAPE_pct": 2.494649675429689
+        },
+        "Régression Ridge": {
+          "R2": 0.9504350652828845,
+          "RMSE": 0.8611099993706078,
+          "MAE": 0.6622852751897398,
+          "MAPE_pct": 0.4669248105001624
+        },
+        "Random Forest": {
+          "R2": 0.9522232584503056,
+          "RMSE": 0.8454338386163325,
+          "MAE": 0.667300307962819,
+          "MAPE_pct": 0.4701829542747872
+        },
+        "XGBoost": {
+          "R2": 0.952752266460856,
+          "RMSE": 0.8407402766434632,
+          "MAE": 0.6566208794027183,
+          "MAPE_pct": 0.4626148543152344
+        }
+      },
+      "xgb_cv": {
+        "R2_mean": 0.9437867984768726,
+        "R2_std": 0.007060570776998731,
+        "RMSE_mean": 0.8812815664980855,
+        "RMSE_std": 0.03183222326402996
+      },
+      "importance": {
+        "Feed P80": 0.5452,
+        "Feed BPL": 0.2091,
+        "Feed Solid Flow": 0.1292,
+        "Output Slurry Solid Fraction": 0.0528,
+        "Cyclone Feed Solid Flow": 0.0121,
+        "Ball Mill Discharge Solid Flow": 0.0113,
+        "Output Slurry Solid Flow": 0.0087,
+        "Cyclone Underflow Solid Flow": 0.0049,
+        "CY001_Vortex_DP_kPa": 0.0015,
+        "SP001_Discharge_Pressure_kPa": 0.0014,
+        "Ball Mill Discharge Solid Fraction": 0.0014,
+        "PB001_Level_pct": 0.0014,
+        "BM001_Mill_Speed_pctCritical": 0.0013,
+        "Cyclone Feed Solid Fraction": 0.0013,
+        "SP001_Vibration_mms": 0.0012,
+        "CY001_Inlet_Pressure_kPa": 0.0012,
+        "Feed Solid Fraction": 0.0012,
+        "SP001_Motor_Power_kW": 0.0012,
+        "CY001_Apex_Wear_Index_pct": 0.0012,
+        "BM001_Bearing_DE_Temp_C": 0.0012,
+        "SP001_Bearing_Temp_C": 0.0011,
+        "Cyclone Underflow Solid Fraction": 0.0011,
+        "SP001_Speed_RPM": 0.0011,
+        "Ambient_Temp_C": 0.0011,
+        "BM001_Power_Draw_kW": 0.0011,
+        "BM001_Motor_Current_A": 0.0011,
+        "SP001_Motor_Current_A": 0.001,
+        "BM001_Sound_Level_dB": 0.001,
+        "PB001_Sump_Temp_C": 0.0009,
+        "BM001_Vibration_mms": 0.0009,
+        "BM001_Bearing_NDE_Temp_C": 0.0009,
+        "PB001_Level_Setpoint_pct": 0.0,
+        "CY001_Cyclones_Online": 0.0,
+        "Process Water Solid Flow": 0.0
+      },
+      "footprint": {
+        "Random Forest": {
+          "size_MB": 8.311,
+          "latency_ms": 29.35
+        },
+        "XGBoost": {
+          "size_MB": 0.062,
+          "latency_ms": 25.598
+        }
+      }
+    }
+  ]
+}

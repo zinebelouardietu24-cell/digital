@@ -86,8 +86,11 @@ export default function SceneEnvironment() {
 
       <ambientLight intensity={0.4} />
 
-      {/* Realistic metal reflections via image-based lighting */}
-      <Environment preset="warehouse" environmentIntensity={0.9} />
+      {/* Realistic metal reflections via image-based lighting — kept modest:
+          the "warehouse" HDRI has bright white light panels that, at full
+          intensity on the equipment's high-metalness/clearcoat materials,
+          read as an unrealistic white rim/streak around every curved edge. */}
+      <Environment preset="warehouse" environmentIntensity={0.35} />
 
       {/* Cheap, convincing grounded-shadow instead of full shadow maps */}
       <ContactShadows position={[0, -0.02, 0]} opacity={0.55} scale={24} blur={2.2} far={8} color="#000000" />
