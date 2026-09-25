@@ -127,3 +127,20 @@ export async function predictWhatIf(inputs) {
   if (!res.ok) throw new Error("Failed to run what-if prediction");
   return res.json();
 }
+/** P80 estimé par le capteur virtuel XGBoost à l'instant rejoué, avec l'historique récent. */
+export async function getSoftSensorP80(history = 24) {
+  const res = await fetch(`${API_BASE}/api/v1/softsensor/p80?history=${history}`, {
+    headers: getAuthHeaders(),
+  });
+  if (!res.ok) throw new Error("Failed to fetch soft sensor estimate");
+  return res.json();
+}
+
+/** Statistiques de l'historien de télémétrie (nombre de mesures enregistrées, période couverte). */
+export async function getHistorianStats() {
+  const res = await fetch(`${API_BASE}/api/v1/telemetry/historian/stats`, {
+    headers: getAuthHeaders(),
+  });
+  if (!res.ok) throw new Error("Failed to fetch historian stats");
+  return res.json();
+}

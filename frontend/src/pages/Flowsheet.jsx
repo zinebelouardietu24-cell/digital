@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Play, Pause, RotateCcw, Square, ChevronLeft, ChevronRight, SlidersHorizontal } from "lucide-react";
 import { getHistoricalTags, getNoderedTags } from "../api/simulationApi";
 import WhatIfPanel from "../components/WhatIfPanel";
+import SoftSensorCard from "../components/SoftSensorCard";
 
 /**
  * Centralized Layout Grid Configuration (1120 x 580 canvas)
@@ -907,6 +908,9 @@ export default function Flowsheet({
           )}
         </div>
       </div>
+
+      {/* Capteur virtuel XGBoost du P80 + compteur de l'historien */}
+      {!hideControls && <SoftSensorCard />}
 
       {/* Cool Futuristic HUD Replay Drawer (Expanding Horizontally to the Left) */}
       {!hideControls && (

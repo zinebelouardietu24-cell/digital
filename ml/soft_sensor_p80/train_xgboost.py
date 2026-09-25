@@ -242,8 +242,13 @@ def main():
     scen_b = run_scenario("B - capteurs en ligne + caractérisation alimentation", df, online + FEED_CHARACTERISATION)
 
     plot_all(scen_a, scen_b)
-    joblib.dump({"model": scen_b["_model"], "features": scen_b["features"], "target": TARGET},
-                OUT_DIR / "xgb_soft_sensor_p80.joblib")
+    bundle = {"model": scen_b["_model"], "features": scen_b["features"], "target": TARGET,
+              "health_window_min": 15, "test_metrics": scen_b["test_metrics"]["XGBoost"],
+              "test_period": scen_b["test_period"]}
+    joblib.dump(bundle, OUT_DIR / "xgb_soft_sensor_p80.joblib")
+    # Copie servie par le backend (dossier data/ monté dans le conteneur).
+    (DATA_DIR / "models").mkdir(parents=True, exist_ok=True)
+    joblib.dump(bundle, DATA_DIR / "models" / "xgb_soft_sensor_p80.joblib")
 
     report = {
         "target": TARGET, "n_rows": int(len(df)),

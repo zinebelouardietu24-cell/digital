@@ -13,6 +13,7 @@ from app.domains.knowledge_graph.rag_service import GraphRAGService
 from app.domains.auth.service import AuthService
 from app.domains.auth.schemas import UserResponse
 from app.domains.whatif.service import WhatIfService
+from app.domains.softsensor.service import SoftSensorService
 from app.core.security import decode_access_token
 from app.core.config import settings
 
@@ -27,14 +28,16 @@ _rag_service: GraphRAGService = None
 _auth_service: AuthService = None
 _whatif_service: WhatIfService = None
 _historian: TelemetryHistorian = None
+_softsensor_service: SoftSensorService = None
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login", auto_error=True)
 
 def init_app_services():
-    global _csv_provider, _asset_service, _mqtt_service, _telemetry_service, _sim_manager, _kg_service, _rag_service, _auth_service, _whatif_service, _historian
+    global _csv_provider, _asset_service, _mqtt_service, _telemetry_service, _sim_manager, _kg_service, _rag_service, _auth_service, _whatif_service, _historian, _softsensor_service
 
     _csv_provider = CSVDataProvider(settings.DATA_DIR)
     _whatif_service = WhatIfService(_csv_provider)
+    _softsensor_service = SoftSensorService(_csv_provider)
     _asset_service = AssetService(
         assets_file_path=settings.ASSETS_PATH,
         equipment_repo=EquipmentRepository(settings.EQUIPMENT_MASTER_PATH),
@@ -86,6 +89,9 @@ def get_whatif_service() -> WhatIfService:
 
 def get_historian() -> TelemetryHistorian:
     return _historian
+
+def get_softsensor_service() -> SoftSensorService:
+    return _softsensor_service
 
 def get_auth_service() -> AuthService:
     global _auth_service
