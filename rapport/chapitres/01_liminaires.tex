@@ -18,10 +18,10 @@ Le broyage est l'une des étapes les plus énergivores du traitement des minerai
 
 La télémétrie provient de deux sources, toutes deux publiées sur un broker MQTT : la relecture des historiques du procédé, et une chaîne industrielle KEPServerEX (OPC UA) -- Node-RED qui transmet 45 tags simulés. Un backend FastAPI, organisé en domaines, aligne des flux acquis à des fréquences différentes, calcule les indicateurs dérivés et enregistre chaque message dans un historien SQLite, ce qui rend l'historique persistant. Un graphe de connaissances de 69 nœuds relie équipements, capteurs, lignes, modes de défaillance et bons de travail.
 
-Trois briques d'intelligence artificielle complètent le système : un simulateur What-If fondé sur une forêt aléatoire multi-sorties (8 entrées, 23 sorties), un copilote conversationnel Graph RAG, et un capteur virtuel XGBoost du P80. Évalué sur une période de test chronologique, ce capteur atteint $R^2 = 0{,}953$ pour une erreur absolue moyenne de 0,66~µm. Une application React restitue l'ensemble sous forme de synoptique animé, de vue 3D, de graphe interactif et de tableau de bord de maintenance.
+Trois briques d'intelligence artificielle complètent le système : un simulateur What-If fondé sur une forêt aléatoire multi-sorties (8 entrées, 23 sorties), un copilote conversationnel Graph RAG, et un capteur virtuel XGBoost du P80. Évalué sur une période de test chronologique, ce capteur atteint $R^2 = 0{,}953$ pour une erreur absolue moyenne de 0,66~µm, soit 6,5 fois moins qu'une analyse de laboratoire toutes les 8~heures. S'y ajoute un module de maintenance prédictive, qui détecte les interventions dans les signaux de santé, révèle deux interventions absentes de la GMAO et prédit la prochaine intervention à moins de 5~heures près, trois jours à l'avance. Une application React restitue l'ensemble sous forme de synoptique animé, de vue 3D, de graphe interactif et de tableau de bord de maintenance.
 
 \medskip
-\noindent\textbf{Mots-clés :} jumeau numérique, broyage, phosphate, IIoT, OPC UA, MQTT, capteur virtuel, XGBoost, simulation What-If, Graph RAG.
+\noindent\textbf{Mots-clés :} jumeau numérique, broyage, phosphate, IIoT, OPC UA, MQTT, capteur virtuel, XGBoost, maintenance prédictive, simulation What-If, Graph RAG.
 
 \chapter*{Abstract}
 \markboth{Abstract}{Abstract}
@@ -31,8 +31,8 @@ Grinding is one of the most energy-intensive steps in mineral processing: commin
 
 Telemetry comes from two sources, both published to an MQTT broker: a replay of plant history, and an industrial KEPServerEX (OPC UA) -- Node-RED chain that streams 45 simulated tags. A domain-driven FastAPI backend aligns streams sampled at different rates, computes derived indicators and stores every message in a SQLite historian, which makes the history persistent. A 69-node knowledge graph links equipment, sensors, streams, failure modes and work orders.
 
-Three artificial intelligence components complete the system: a What-If simulator based on a multi-output random forest (8 inputs, 23 outputs), a Graph RAG conversational copilot, and an XGBoost soft sensor for P80. Evaluated on a chronological test period, this soft sensor reaches $R^2 = 0.953$ with a mean absolute error of 0.66~µm. A React application presents everything as an animated flowsheet, a 3D view, an interactive graph and a maintenance dashboard.
+Three artificial intelligence components complete the system: a What-If simulator based on a multi-output random forest (8 inputs, 23 outputs), a Graph RAG conversational copilot, and an XGBoost soft sensor for P80. Evaluated on a chronological test period, this soft sensor reaches $R^2 = 0.953$ with a mean absolute error of 0.66~µm, 6.5 times lower than a laboratory analysis every 8~hours. A predictive maintenance module completes the system: it detects interventions in the health signals, reveals two interventions missing from the CMMS and forecasts the next intervention within 5~hours, three days ahead. A React application presents everything as an animated flowsheet, a 3D view, an interactive graph and a maintenance dashboard.
 
 \medskip
-\noindent\textbf{Keywords:} digital twin, grinding, phosphate, IIoT, OPC UA, MQTT, soft sensor, XGBoost, What-If simulation, Graph RAG.
+\noindent\textbf{Keywords:} digital twin, grinding, phosphate, IIoT, OPC UA, MQTT, soft sensor, XGBoost, predictive maintenance, What-If simulation, Graph RAG.
 \end{otherlanguage}

@@ -93,10 +93,49 @@ La faible dispersion d'un pli à l'autre montre que le modèle reste stable dans
 \paragraph{Analyse.} Quatre enseignements se dégagent.
 \begin{enumerate}
   \item \textbf{Le capteur virtuel est fiable.} Avec une erreur moyenne de 0,66~µm, soit 0,46\,\% du P80, XGBoost réduit l'erreur de 81\,\% par rapport à la référence constante (MAE de 3,54~µm).
-  \item \textbf{Les capteurs en ligne suffisent.} Sans aucune analyse de laboratoire (scénario A), XGBoost atteint déjà $R^2 = 0{,}950$. Un modèle linéaire plafonne à 0,890 dans ce scénario : la relation entre les débits et la granulométrie n'est pas linéaire, ce qui justifie un modèle à base d'arbres.
+  \item \textbf{Les capteurs en ligne suffisent.} Sans aucune analyse de laboratoire (scénario A), XGBoost atteint déjà $R^2 = 0{,}950$. Un modèle linéaire plafonne à 0,890 dans ce scénario : la relation entre les débits et la granulométrie n'est pas linéaire, ce qui justifie un modèle à base d'arbres. À l'inverse, dans le scénario B, la régression Ridge atteint 0,950, presque autant que XGBoost (0,953) : lorsque la caractérisation de l'alimentation est connue, un modèle linéaire suffit. L'intérêt de XGBoost se situe donc dans le cas le plus réaliste, celui où l'on ne dispose que des capteurs en ligne.
   \item \textbf{XGBoost et Random Forest sont à égalité en précision.} Les écarts, de l'ordre de 0,003 en $R^2$, ne sont pas significatifs. XGBoost se distingue par sa \textbf{sobriété} : son modèle final comporte 49 arbres de profondeur 3 et pèse \textbf{0,06~Mo}, contre 100 arbres de profondeur 22 et \textbf{8,3~Mo} pour le Random Forest, soit un modèle environ 130 fois plus léger. C'est un atout pour un déploiement embarqué, au plus près des machines.
-  \item \textbf{Le plafond observé est celui du bruit de mesure.} Les figures~\ref{fig:p80ts} et~\ref{fig:parity} montrent que le P80 évolue selon trois régimes de fonctionnement (environ 138, 141,5 et 147~µm) et que le modèle identifie chaque changement de régime sans retard. L'erreur résiduelle correspond aux fluctuations à l'intérieur d'un régime, qui ne sont liées à aucune variable d'entrée. Aucun modèle ne peut les prédire, ce qui explique que les trois modèles non linéaires convergent vers la même RMSE, environ 0,84~µm.
+  \item \textbf{Le $R^2$ reflète surtout la reconnaissance du type de minerai.} Les figures~\ref{fig:p80ts} et~\ref{fig:parity} montrent que le P80 évolue selon trois régimes (environ 138, 141,5 et 147~µm), qui changent en moyenne toutes les 3,3~heures et suivent la nature du minerai alimenté (P80 et teneur BPL de l'alimentation). Le modèle identifie chaque changement de régime sans retard. En revanche, \textbf{à l'intérieur d'un régime}, il n'explique pas les fluctuations : le $R^2$ calculé sur les écarts à la moyenne de chaque régime est proche de zéro ($-0{,}16$). Ces fluctuations ne sont donc liées à aucune variable d'entrée et se comportent comme un bruit de mesure, ce qui explique aussi que les trois modèles non linéaires convergent vers la même RMSE, environ 0,84~µm. Il serait donc trompeur de présenter le $R^2$ de 0,95 comme une capacité à suivre chaque micro-variation : sa valeur opérationnelle tient à la détection immédiate des changements de minerai, évaluée ci-dessous.
 \end{enumerate}
 
 \paragraph{Reproductibilité.} L'ensemble de l'expérience tient dans un script unique du projet, \nolinkurl{ml/soft_sensor_p80/train_xgboost.py}, avec une graine aléatoire fixée. Le script produit le fichier \texttt{metrics.json}, les figures de cette section et le modèle entraîné (\nolinkurl{xgb_soft_sensor_p80.joblib}).
+
+\paragraph{Comparaison avec la pratique actuelle : l'analyse de laboratoire.} Un $R^2$ ne dit pas si l'outil est utile à l'exploitant. La vraie question est : \textit{le capteur virtuel fait-il mieux que ce dont l'opérateur dispose aujourd'hui ?} Sans granulomètre en ligne, le P80 est connu par une analyse de laboratoire périodique. Nous avons simulé cette pratique sur la même période de test : un prélèvement toutes les 4 ou 8 heures, un résultat disponible une heure après le prélèvement, et, entre deux résultats, l'opérateur se fie à la dernière valeur connue. Le capteur virtuel est ici le modèle XGBoost du scénario A, qui n'utilise que les capteurs en ligne (tableau~\ref{tab:labo}, figures~\ref{fig:labo} et~\ref{fig:labomae}).
+
+\begin{table}[H]
+\centering
+\caption{Capteur virtuel et analyse de laboratoire sur le jeu de test (432 points, 26--30 juillet 2026)}
+\label{tab:labo}
+\small
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}X ccc}
+\toprule
+ & \textbf{Labo / 8 h} & \textbf{Labo / 4 h} & \textbf{Capteur virtuel} \\
+\midrule
+Erreur absolue moyenne & 4,26~µm & 3,26~µm & \textbf{0,66~µm} \\
+Erreur maximale & 11,2~µm & 10,9~µm & \textbf{4,4~µm} \\
+Part du temps avec une erreur $> 2$~µm & 61\,\% & 50\,\% & \textbf{2\,\%} \\
+Régime de minerai correctement identifié & 39\,\% & 52\,\% & \textbf{98,6\,\%} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{p80_capteur_vs_labo}
+\caption{48 premières heures du test : P80 réel, capteur virtuel avec son intervalle à 90\,\%, et valeur connue de l'opérateur avec une analyse de laboratoire toutes les 8~h}
+\label{fig:labo}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.62\textwidth]{p80_mae_labo_vs_capteur}
+\caption{Erreur absolue moyenne sur le P80 selon la source d'information}
+\label{fig:labomae}
+\end{figure}
+
+Le résultat est net : l'erreur est \textbf{divisée par 6,5} par rapport à une analyse toutes les 8~heures, et par 5 par rapport à une analyse toutes les 4~heures. La raison est visible sur la figure~\ref{fig:labo} : le minerai change de nature toutes les 3~heures environ, plus vite que le laboratoire ne peut le suivre. L'opérateur pilote alors une bonne partie du temps avec une valeur périmée, souvent celle d'un autre régime. Le capteur virtuel, lui, se recale à chaque mesure, soit toutes les 15~minutes. Sur les 432 points du test, il ne se trompe de régime que 6 fois, toujours au moment même d'une transition.
+
+\paragraph{Intervalle de confiance de chaque estimation.} Un opérateur doit savoir quand faire confiance à une estimation. Nous avons donc associé à chaque valeur un \textbf{intervalle de prédiction à 90\,\%}, construit par prédiction conforme (\textit{split conformal prediction})~\cite{angelopoulos2023}. Le principe est simple : on mesure les erreurs du modèle sur le jeu de validation, qu'il n'a pas vu pendant l'apprentissage, et l'on retient l'erreur que 90\,\% d'entre elles ne dépassent pas. On obtient un intervalle de \textbf{$\pm$\,1,41~µm}. Sur le jeu de test, \textbf{91,4\,\%} des valeurs réelles tombent dans cet intervalle, conformément à la garantie annoncée de 90\,\%. Le capteur virtuel peut ainsi afficher, par exemple, «~P80 = 147,2~µm $\pm$ 1,4~µm~».
+
+\paragraph{Reproductibilité.} Ces analyses sont produites par le script \nolinkurl{ml/soft_sensor_p80/analyse_avancee.py}.
 

@@ -1,0 +1,122 @@
+\subsection{Maintenance prédictive : pronostic de durée de vie résiduelle}
+\label{sec:pronostic}
+
+\paragraph{Objectif.} Le tableau de bord de maintenance affiche l'état actuel des équipements. Un jumeau numérique doit aller plus loin et répondre à la question de l'exploitant : \textit{dans combien de jours cet équipement devra-t-il être arrêté ?} C'est l'estimation de la \textbf{durée de vie résiduelle} (\textit{Remaining Useful Life}, RUL), cœur de la maintenance conditionnelle et prévisionnelle~\cite{jardine2006}.
+
+\paragraph{Démarche.} Nous suivons un indicateur d'usure par équipement critique : la vibration de la pompe SP\_001, la vibration du broyeur BM\_001 et l'indice d'usure des apex des hydrocyclones CY\_001. Les signaux de santé, enregistrés chaque minute, sont moyennés par heure. L'analyse se déroule en quatre étapes :
+\begin{enumerate}
+  \item détecter automatiquement les interventions dans les signaux et les rapprocher de la GMAO ;
+  \item modéliser la dégradation entre deux interventions ;
+  \item valider le pronostic a posteriori, sur les cycles déjà terminés ;
+  \item pronostiquer la date à laquelle chaque indicateur atteindra son seuil d'alarme.
+\end{enumerate}
+
+\paragraph{Étape 1 -- Détection des interventions et audit de la GMAO.} Une intervention de maintenance se traduit par une chute brutale de l'indicateur d'usure : la machine repart «~comme neuve~». Nous considérons comme intervention toute baisse horaire supérieure à 8 fois l'écart-type du bruit, estimé de façon robuste par l'écart absolu médian. Cinq interventions sont détectées sur le mois, puis rapprochées des ordres de travail de la GMAO (tableau~\ref{tab:interventions}).
+
+\begin{table}[H]
+\centering
+\caption{Interventions détectées dans les signaux et rapprochement avec la GMAO}
+\label{tab:interventions}
+\small
+\begin{tabularx}{\textwidth}{l l l X}
+\toprule
+\textbf{Équipement} & \textbf{Indicateur} & \textbf{Date détectée} & \textbf{Ordre de travail dans la GMAO} \\
+\midrule
+SP\_001 (pompe) & Vibration & 10/07/2026 & \textbf{Aucun} \\
+SP\_001 (pompe) & Vibration & 23/07/2026 & WO-2026-0814 : remplacement du \textit{throatbush} et du revêtement de la roue (correctif) \\
+BM\_001 (broyeur) & Vibration & 15/07/2026 & \textbf{Aucun} \\
+BM\_001 (broyeur) & Vibration & 28/07/2026 & WO-2026-0820 : alerte de température du palier, filtre et lubrifiant (conditionnel) \\
+CY\_001 (cyclones) & Usure des apex & 19/07/2026 & Trois ordres de travail : remplacement des apex et des \textit{vortex finders} des batteries A et B, débouchage de la batterie C \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Trois interventions sur cinq correspondent exactement, au jour près, à un ordre de travail. Les deux autres (10/07 sur la pompe, 15/07 sur le broyeur) sont clairement visibles dans les signaux mais \textbf{absentes de la GMAO}. Le jumeau numérique sert ici d'outil d'audit : il révèle des interventions non tracées, qui faussent ensuite les indicateurs de fiabilité calculés à partir de la GMAO (MTBF, MTTR). Une autre incohérence apparaît : l'ordre WO-2026-0820 mentionne une alerte à 68~°C sur un palier du broyeur, alors que les deux capteurs de température de palier du jumeau n'ont jamais dépassé 62,2~°C. L'alerte provient donc probablement d'un capteur qui n'est pas encore remonté dans le jumeau.
+
+\paragraph{Étape 2 -- Modèle de dégradation.} Entre deux interventions, chaque indicateur croît de façon quasi linéaire (tableau~\ref{tab:cycles}). Surtout, la \textbf{vitesse de dégradation est la même d'un cycle à l'autre} : 0,045~mm/s par jour pour la pompe, 0,060~mm/s par jour pour le broyeur et 2,60~\% par jour pour les apex. C'est ce qui rend le pronostic possible : connaître la pente et le niveau actuel suffit pour prévoir la suite.
+
+\begin{table}[H]
+\centering
+\caption{Cycles de dégradation observés (entre deux interventions)}
+\label{tab:cycles}
+\small\setlength{\tabcolsep}{4pt}
+\begin{tabular}{llcccc}
+\toprule
+\textbf{Équipement} & \textbf{Cycle} & \textbf{Durée} & \textbf{Début $\rightarrow$ fin} & \textbf{Pente / jour} & \textbf{$R^2$} \\
+\midrule
+Pompe (mm/s) & 01/07 -- 09/07 & 9,0 j & 1,80 $\rightarrow$ 2,20 & 0,0448 & 0,992 \\
+ & 10/07 -- 22/07 & 13,0 j & 1,81 $\rightarrow$ 2,38 & 0,0452 & 0,996 \\
+ & 23/07 -- en cours & 8,0 j & 1,80 $\rightarrow$ 2,15 & 0,0453 & 0,990 \\
+\midrule
+Broyeur (mm/s) & 01/07 -- 14/07 & 14,0 j & 2,61 $\rightarrow$ 3,43 & 0,0595 & 0,996 \\
+ & 15/07 -- 27/07 & 13,0 j & 2,60 $\rightarrow$ 3,37 & 0,0600 & 0,996 \\
+ & 28/07 -- en cours & 3,0 j & 2,60 $\rightarrow$ 2,77 & 0,0604 & 0,932 \\
+\midrule
+Apex (\%) & 01/07 -- 18/07 & 18,0 j & 5,3 $\rightarrow$ 51,5 & 2,600 & 1,000 \\
+ & 19/07 -- en cours & 12,0 j & 5,3 $\rightarrow$ 35,9 & 2,600 & 1,000 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Étape 3 -- Validation a posteriori (\textit{backtest}).} Pour vérifier le pronostic sans attendre l'avenir, nous nous replaçons dans le passé. À chaque heure d'un cycle terminé, le modèle est ajusté \textbf{uniquement sur les données disponibles à cet instant}, puis il prédit la date à laquelle l'indicateur atteindra le niveau auquel l'intervention a réellement eu lieu. On compare ensuite cette date à la date réelle. Les cinq cycles terminés fournissent ainsi 1\,543 pronostics (tableau~\ref{tab:backtest}, figure~\ref{fig:backtest}).
+
+\begin{table}[H]
+\centering
+\caption{Erreur du pronostic de durée de vie résiduelle selon l'horizon (5 cycles, 1\,543 pronostics)}
+\label{tab:backtest}
+\small
+\begin{tabular}{lcc}
+\toprule
+\textbf{Moment du pronostic} & \textbf{Erreur moyenne} & \textbf{Erreur maximale} \\
+\midrule
+7 jours avant l'intervention & 4,6~h & 25,2~h \\
+3 jours avant l'intervention & 2,4~h & 4,8~h \\
+1 jour avant l'intervention & 2,5~h & 4,7~h \\
+\midrule
+Ensemble des pronostics & 6,4~h (6,0\,\% de la durée restante) & -- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.6\textwidth]{pronostic_backtest}
+\caption{Durée de vie résiduelle prédite en fonction de la durée réelle ; la diagonale correspond à un pronostic parfait}
+\label{fig:backtest}
+\end{figure}
+
+Une semaine avant l'intervention, la date est prédite à moins de 5~heures près en moyenne. Trois jours avant, l'erreur ne dépasse jamais 5~heures : c'est largement suffisant pour planifier une équipe, commander une pièce ou caler l'arrêt sur un changement de poste. La figure~\ref{fig:backtest} montre aussi la limite de la méthode : pendant les 1 à 2 premiers jours d'un cycle, la pente est estimée sur trop peu de points et le pronostic oscille. Il ne doit donc être affiché qu'après environ 48~heures de fonctionnement depuis la dernière intervention. Enfin, 90\,\% des pronostics ont une erreur inférieure à 8\,\% de la durée restante : nous utilisons cette valeur pour construire l'intervalle de confiance des pronostics de l'étape suivante.
+
+\paragraph{Étape 4 -- Pronostic à la fin des données.} Le modèle est enfin appliqué au cycle en cours de chaque équipement, au 30 juillet 2026. Les seuils d'alarme proviennent de la norme ISO 10816-3 pour les vibrations~\cite{iso10816} (limite entre la zone B, «~fonctionnement acceptable sans restriction~», et la zone C, «~fonctionnement acceptable seulement pour une durée limitée~»), et de la pratique observée dans la GMAO pour les apex (tableau~\ref{tab:pronostic}, figure~\ref{fig:pronostic}).
+
+\begin{table}[H]
+\centering
+\caption{Pronostic au 30 juillet 2026 (intervalle à 90\,\%)}
+\label{tab:pronostic}
+\small
+\begin{tabularx}{\textwidth}{l c >{\raggedright\arraybackslash}X c c}
+\toprule
+\textbf{Équipement} & \textbf{Niveau actuel} & \textbf{Seuil d'alarme} & \textbf{Durée restante} & \textbf{Date prévue} \\
+\midrule
+Pompe SP\_001 & 2,15~mm/s & 2,8~mm/s (ISO 10816-3, groupe 2, zones B/C) & 14,1 j [13,0 -- 15,2] & 14/08/2026 \\
+Broyeur BM\_001 & 2,77~mm/s & 4,5~mm/s (ISO 10816-3, groupe 1, zones B/C) & 28,5 j [26,2 -- 30,8] & 28/08/2026 \\
+Apex CY\_001 & 35,9~\% & 50~\% (niveau de remplacement du 19/07) & 5,3 j [4,9 -- 5,7] & 05/08/2026 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{pronostic_equipements}
+\caption{Indicateurs d'usure, interventions détectées (trait plein : présente dans la GMAO ; pointillé : absente) et pronostic jusqu'au seuil d'alarme (zone grisée)}
+\label{fig:pronostic}
+\end{figure}
+
+\paragraph{Analyse.} Ce pronostic apporte trois enseignements concrets.
+\begin{enumerate}
+  \item \textbf{La prochaine intervention urgente concerne les hydrocyclones.} Les apex atteindront le niveau de remplacement vers le 5 août, soit dans 5 jours. C'est l'information la plus utile pour l'exploitant : elle laisse le temps de préparer les pièces et de planifier l'arrêt.
+  \item \textbf{Les interventions pourraient être espacées.} La pompe a été arrêtée en moyenne tous les 11 jours, à une vibration de 2,29~mm/s, alors qu'au rythme de dégradation observé elle n'atteindrait la zone C qu'après 22 jours environ. Pour le broyeur, les interventions ont eu lieu tous les 13,5 jours, contre environ 32 jours avant d'atteindre son seuil. Selon ce seul critère vibratoire, les équipements sont donc arrêtés à mi-vie environ. Avant de modifier la stratégie, il faudra toutefois confirmer cette marge avec les autres critères de décision des techniciens, en particulier l'épaisseur résiduelle des revêtements d'usure.
+  \item \textbf{La GMAO doit être fiabilisée.} Deux interventions sur cinq n'y figurent pas. Le jumeau permet de les détecter automatiquement et pourrait proposer de créer l'ordre de travail manquant.
+\end{enumerate}
+
+\paragraph{Limites.} Dans les données simulées, la dégradation est linéaire et très régulière, ce qui explique la précision obtenue. Sur une installation réelle, l'usure s'accélère souvent en fin de vie, et un modèle exponentiel ou par morceaux serait alors nécessaire. Le mois d'historique ne contient en outre que cinq cycles complets. Ces résultats valident donc la démarche et l'outillage, mais leur précision devra être confirmée sur des mesures réelles. L'ensemble est produit par le script \nolinkurl{ml/maintenance_predictive/pronostic.py}.

@@ -38,7 +38,7 @@
 \usepackage[hidelinks,unicode]{hyperref}
 \usepackage[acronym,nonumberlist,nopostdot,toc]{glossaries}
 
-% ---------------------------------------------------------------- Couleurs du rapport
+% ---------------------------------------------------------------- Couleurs du rapport (figures uniquement ; texte et titres en noir)
 \definecolor{bleu}{HTML}{1F4E79}
 \definecolor{bleuclair}{HTML}{DCE6F2}
 \definecolor{vert}{HTML}{2E7D32}
@@ -55,10 +55,10 @@
 
 % ---------------------------------------------------------------- Titres
 \titleformat{\chapter}[display]
-  {\normalfont\bfseries\color{bleu}}
+  {\normalfont\bfseries}
   {\LARGE\chaptertitlename\ \thechapter}{8pt}{\Huge}
 \titlespacing*{\chapter}{0pt}{0pt}{30pt}
-\titleformat{\section}{\normalfont\Large\bfseries\color{bleu}}{\thesection}{1em}{}
+\titleformat{\section}{\normalfont\Large\bfseries}{\thesection}{1em}{}
 \titleformat{\subsection}{\normalfont\large\bfseries}{\thesubsection}{1em}{}
 
 % ---------------------------------------------------------------- En-têtes
