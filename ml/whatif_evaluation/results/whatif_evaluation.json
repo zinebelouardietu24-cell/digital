@@ -1,0 +1,166 @@
+{
+  "n_sorties": 23,
+  "synthese": {
+    "aleatoire_minute": {
+      "R2_median": 0.9962514222506702,
+      "R2_moyen": 0.874063205528629,
+      "sorties_R2_sup_0.9": 14,
+      "sorties_R2_inf_0.5": 0
+    },
+    "aleatoire_15min": {
+      "R2_median": 0.9756516908173821,
+      "R2_moyen": 0.5677717365796023,
+      "sorties_R2_sup_0.9": 13,
+      "sorties_R2_inf_0.5": 10
+    },
+    "chronologique_15min": {
+      "R2_median": 0.9698720832676921,
+      "R2_moyen": 0.5676639368758467,
+      "sorties_R2_sup_0.9": 13,
+      "sorties_R2_inf_0.5": 10
+    }
+  },
+  "R2_median_par_groupe": {
+    "Ball Mill Health": {
+      "aleatoire_minute": 0.754,
+      "aleatoire_15min": 0.016,
+      "chronologique_15min": -0.004
+    },
+    "Cyclone": {
+      "aleatoire_minute": 0.998,
+      "aleatoire_15min": 0.991,
+      "chronologique_15min": 0.991
+    },
+    "Grind & Grade": {
+      "aleatoire_minute": 0.998,
+      "aleatoire_15min": 0.987,
+      "chronologique_15min": 0.99
+    },
+    "Pump Health": {
+      "aleatoire_minute": 0.675,
+      "aleatoire_15min": -0.01,
+      "chronologique_15min": -0.025
+    }
+  },
+  "R2_par_sortie": {
+    "Cyclone Feed Solid Flow": {
+      "aleatoire_minute": 0.999,
+      "aleatoire_15min": 0.996,
+      "chronologique_15min": 0.996
+    },
+    "Cyclone Feed BPL": {
+      "aleatoire_minute": 0.998,
+      "aleatoire_15min": 0.987,
+      "chronologique_15min": 0.989
+    },
+    "Cyclone Feed P80": {
+      "aleatoire_minute": 0.999,
+      "aleatoire_15min": 0.993,
+      "chronologique_15min": 0.993
+    },
+    "Cyclone Underflow Solid Flow": {
+      "aleatoire_minute": 1.0,
+      "aleatoire_15min": 0.997,
+      "chronologique_15min": 0.997
+    },
+    "Cyclone Underflow BPL": {
+      "aleatoire_minute": 0.998,
+      "aleatoire_15min": 0.988,
+      "chronologique_15min": 0.989
+    },
+    "Cyclone Underflow P80": {
+      "aleatoire_minute": 1.0,
+      "aleatoire_15min": 0.999,
+      "chronologique_15min": 0.999
+    },
+    "CY001_Inlet_Pressure_kPa": {
+      "aleatoire_minute": 0.595,
+      "aleatoire_15min": -0.001,
+      "chronologique_15min": 0.015
+    },
+    "CY001_Vortex_DP_kPa": {
+      "aleatoire_minute": 0.579,
+      "aleatoire_15min": 0.005,
+      "chronologique_15min": 0.004
+    },
+    "Ball Mill Discharge Solid Flow": {
+      "aleatoire_minute": 0.999,
+      "aleatoire_15min": 0.997,
+      "chronologique_15min": 0.997
+    },
+    "Ball Mill Discharge BPL": {
+      "aleatoire_minute": 0.998,
+      "aleatoire_15min": 0.988,
+      "chronologique_15min": 0.989
+    },
+    "Ball Mill Discharge P80": {
+      "aleatoire_minute": 0.903,
+      "aleatoire_15min": 0.385,
+      "chronologique_15min": 0.329
+    },
+    "Output Slurry Solid Flow": {
+      "aleatoire_minute": 0.999,
+      "aleatoire_15min": 0.993,
+      "chronologique_15min": 0.994
+    },
+    "Output Slurry BPL": {
+      "aleatoire_minute": 0.998,
+      "aleatoire_15min": 0.987,
+      "chronologique_15min": 0.99
+    },
+    "Output Slurry P80": {
+      "aleatoire_minute": 0.991,
+      "aleatoire_15min": 0.937,
+      "chronologique_15min": 0.956
+    },
+    "Circulating_Load_Ratio_pct": {
+      "aleatoire_minute": 0.996,
+      "aleatoire_15min": 0.976,
+      "chronologique_15min": 0.97
+    },
+    "Mill_Reduction_Ratio": {
+      "aleatoire_minute": 1.0,
+      "aleatoire_15min": 0.998,
+      "chronologique_15min": 0.999
+    },
+    "BM001_Power_Draw_kW": {
+      "aleatoire_minute": 0.754,
+      "aleatoire_15min": -0.103,
+      "chronologique_15min": -0.061
+    },
+    "BM001_Motor_Current_A": {
+      "aleatoire_minute": 0.743,
+      "aleatoire_15min": -0.104,
+      "chronologique_15min": -0.06
+    },
+    "BM001_Bearing_DE_Temp_C": {
+      "aleatoire_minute": 0.779,
+      "aleatoire_15min": 0.021,
+      "chronologique_15min": 0.014
+    },
+    "BM001_Bearing_NDE_Temp_C": {
+      "aleatoire_minute": 0.764,
+      "aleatoire_15min": 0.023,
+      "chronologique_15min": 0.011
+    },
+    "BM001_Vibration_mms": {
+      "aleatoire_minute": 0.661,
+      "aleatoire_15min": 0.016,
+      "chronologique_15min": -0.004
+    },
+    "SP001_Motor_Power_kW": {
+      "aleatoire_minute": 0.666,
+      "aleatoire_15min": -0.012,
+      "chronologique_15min": -0.025
+    },
+    "SP001_Discharge_Pressure_kPa": {
+      "aleatoire_minute": 0.684,
+      "aleatoire_15min": -0.007,
+      "chronologique_15min": -0.026
+    }
+  },
+  "periode_test_chrono": [
+    "2026-07-25 00:00:00",
+    "2026-07-30 23:45:00"
+  ]
+}

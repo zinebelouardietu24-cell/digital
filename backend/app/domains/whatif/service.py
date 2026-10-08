@@ -4,8 +4,8 @@ from typing import Any, Dict, List, Optional
 
 import joblib
 import numpy as np
+import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score
 
 from app.providers.csv_provider import CSVDataProvider
@@ -17,7 +17,7 @@ MODEL_PATH: Path = settings.DATA_DIR / "models" / "whatif_model.joblib"
 # Bumped whenever the model's hyperparameters change, so a stale cache from
 # a previous tuning pass is never silently reused with different accuracy
 # characteristics than what the current code would produce.
-MODEL_VERSION = 2
+MODEL_VERSION = 3
 
 # Things an operator would actually adjust upstream of the circuit.
 INPUT_COLUMNS = [
@@ -151,10 +151,21 @@ class WhatIfService:
             except Exception as e:
                 logger.warning("Failed to load cached what-if model (%s) — retraining.", e)
 
-        X = df[INPUT_COLUMNS].astype(float)
-        y = df[OUTPUT_COLUMNS].astype(float)
+        # The merged table is sampled every minute, but process values only
+        # change every 15 minutes: each process record is repeated on 15
+        # rows. A random split would put near-duplicates in train and test
+        # and inflate R2, so we keep one row per process record and evaluate
+        # on the most recent 20 % (chronological split), as in
+        # ml/whatif_evaluation/evaluer_whatif.py.
+        sample = df
+        if "Timestamp" in df.columns:
+            minutes = pd.to_datetime(df["Timestamp"], errors="coerce").dt.minute
+            sample = df[(minutes % 15 == 0).to_numpy()]
+        X = sample[INPUT_COLUMNS].astype(float)
+        y = sample[OUTPUT_COLUMNS].astype(float)
 
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+        cut = int(len(sample) * 0.8)
+        X_train, X_test, y_train, y_test = X.iloc[:cut], X.iloc[cut:], y.iloc[:cut], y.iloc[cut:]
 
         # n_jobs kept small (not -1) — under a constrained/virtualized CPU
         # environment, "use every detected core" can cause severe
@@ -180,6 +191,9 @@ class WhatIfService:
         y_pred = model.predict(X_test)
         scores = r2_score(y_test, y_pred, multioutput="raw_values")
         self._r2_scores = {col: round(float(s), 3) for col, s in zip(OUTPUT_COLUMNS, scores)}
+
+        # Scores measured, the served model is refit on the full history.
+        model.fit(X, y)
 
         self._model = model
         self._baseline = df[INPUT_COLUMNS + OUTPUT_COLUMNS].iloc[-1].astype(float).to_dict()

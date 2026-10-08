@@ -42,7 +42,9 @@ export default function SoftSensorCard() {
   if (!p80 || !p80.available) return null;
 
   const err = p80.error_um;
-  const errColor = Math.abs(err) <= 1.5 ? "#34d399" : "#fbbf24";
+  const halfWidth = p80.interval_90_um;
+  // Green when the measured value falls inside the 90 % prediction interval.
+  const errColor = Math.abs(err) <= (halfWidth ?? 1.5) ? "#34d399" : "#fbbf24";
   const metrics = p80.test_metrics || {};
 
   return (
@@ -73,8 +75,15 @@ export default function SoftSensorCard() {
         <div>
           <div style={{ color: MUTED, fontSize: "0.62rem" }}>P80 estimé (surverse)</div>
           <div style={{ color: "#e2e8f0", fontWeight: 800, fontSize: "1.35rem", lineHeight: 1.1 }}>
-            {p80.estimated_p80_um.toFixed(1)} <span style={{ fontSize: "0.7rem", color: MUTED }}>µm</span>
+            {p80.estimated_p80_um.toFixed(1)}
+            {halfWidth != null && (
+              <span style={{ fontSize: "0.8rem", color: ACCENT, fontWeight: 700 }}> ± {halfWidth.toFixed(1)}</span>
+            )}{" "}
+            <span style={{ fontSize: "0.7rem", color: MUTED }}>µm</span>
           </div>
+          {halfWidth != null && (
+            <div style={{ color: MUTED, fontSize: "0.58rem" }}>intervalle de confiance à 90 %</div>
+          )}
         </div>
         <div style={{ textAlign: "right" }}>
           <div style={{ color: MUTED, fontSize: "0.62rem" }}>Mesuré : {p80.measured_p80_um.toFixed(1)} µm</div>

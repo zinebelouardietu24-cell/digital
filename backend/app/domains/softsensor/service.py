@@ -80,6 +80,14 @@ class SoftSensorService:
             "error_um": round(estimated - measured, 2),
             "test_metrics": self._bundle.get("test_metrics", {}),
         }
+        # 90 % prediction interval (split conformal), computed offline by
+        # ml/soft_sensor_p80/analyse_avancee.py; absent from older model files.
+        half_width = self._bundle.get("interval_90_um")
+        if half_width is not None:
+            result["interval_90_um"] = round(float(half_width), 2)
+            result["interval_90_coverage_test_pct"] = self._bundle.get("interval_90_coverage_test_pct")
+            result["lower_p80_um"] = round(estimated - half_width, 2)
+            result["upper_p80_um"] = round(estimated + half_width, 2)
 
         if history_points > 0:
             # One point per process sample (every 15 health records).

@@ -2,10 +2,11 @@ from datetime import datetime
 from typing import Dict, Any, List
 from fastapi import APIRouter, Depends, HTTPException
 
-from app.api.dependencies import get_telemetry_service, get_sim_manager
+from app.api.dependencies import get_telemetry_service, get_sim_manager, get_prognosis_service
 from app.domains.telemetry.service import TelemetryService
 from app.domains.simulation.manager import SimulationManager
 from app.core.exceptions import EquipmentNotFoundError
+from app.domains.prognosis.service import PrognosisService
 
 router = APIRouter(tags=["Predictive Maintenance"])
 
@@ -41,6 +42,17 @@ def _compute_maintenance_fields(eq_item: Dict[str, Any], sim_now_str: str) -> Di
     item["days_until_due"] = days_until
     item["is_overdue"] = days_until < 0
     return item
+
+@router.get("/prognosis")
+def get_prognosis(
+    sim_manager: SimulationManager = Depends(get_sim_manager),
+    prognosis: PrognosisService = Depends(get_prognosis_service),
+) -> Dict[str, Any]:
+    """Remaining useful life of the pump, mill and hydrocyclones at the replayed time."""
+    if not prognosis:
+        raise HTTPException(500, "Prognosis service not initialized")
+    index = sim_manager.current_record_idx if sim_manager else 0
+    return prognosis.forecast(index)
 
 @router.get("/equipment")
 def get_all_maintenance_equipment(

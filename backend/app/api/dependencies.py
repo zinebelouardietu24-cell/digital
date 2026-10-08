@@ -14,6 +14,7 @@ from app.domains.auth.service import AuthService
 from app.domains.auth.schemas import UserResponse
 from app.domains.whatif.service import WhatIfService
 from app.domains.softsensor.service import SoftSensorService
+from app.domains.prognosis.service import PrognosisService
 from app.core.security import decode_access_token
 from app.core.config import settings
 
@@ -29,11 +30,12 @@ _auth_service: AuthService = None
 _whatif_service: WhatIfService = None
 _historian: TelemetryHistorian = None
 _softsensor_service: SoftSensorService = None
+_prognosis_service: PrognosisService = None
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login", auto_error=True)
 
 def init_app_services():
-    global _csv_provider, _asset_service, _mqtt_service, _telemetry_service, _sim_manager, _kg_service, _rag_service, _auth_service, _whatif_service, _historian, _softsensor_service
+    global _csv_provider, _asset_service, _mqtt_service, _telemetry_service, _sim_manager, _kg_service, _rag_service, _auth_service, _whatif_service, _historian, _softsensor_service, _prognosis_service
 
     _csv_provider = CSVDataProvider(settings.DATA_DIR)
     _whatif_service = WhatIfService(_csv_provider)
@@ -43,6 +45,7 @@ def init_app_services():
         equipment_repo=EquipmentRepository(settings.EQUIPMENT_MASTER_PATH),
         maintenance_repo=MaintenanceRepository(settings.MAINTENANCE_HISTORY_PATH),
     )
+    _prognosis_service = PrognosisService(_csv_provider, _asset_service)
     _kg_service = KnowledgeGraphService(_asset_service, _csv_provider)
     _historian = TelemetryHistorian(settings.HISTORIAN_DB_PATH)
     _historian.start()
@@ -92,6 +95,9 @@ def get_historian() -> TelemetryHistorian:
 
 def get_softsensor_service() -> SoftSensorService:
     return _softsensor_service
+
+def get_prognosis_service() -> PrognosisService:
+    return _prognosis_service
 
 def get_auth_service() -> AuthService:
     global _auth_service

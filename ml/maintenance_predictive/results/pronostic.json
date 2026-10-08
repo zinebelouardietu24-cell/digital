@@ -1,0 +1,247 @@
+{
+  "periode": [
+    "2026-07-01 00:00:00",
+    "2026-07-30 23:00:00"
+  ],
+  "equipements": {
+    "SP_001": {
+      "indicateur": "Pompe SP_001 - vibration",
+      "unite": "mm/s",
+      "seuil": 2.8,
+      "source_seuil": "ISO 10816-3, groupe 2, limite des zones B/C",
+      "interventions_detectees": [
+        {
+          "date": "2026-07-10 00:00:00",
+          "dans_gmao": false,
+          "ordres_de_travail": [],
+          "type": []
+        },
+        {
+          "date": "2026-07-23 00:00:00",
+          "dans_gmao": true,
+          "ordres_de_travail": [
+            "WO-2026-0814"
+          ],
+          "type": [
+            "Corrective"
+          ]
+        }
+      ],
+      "cycles": [
+        {
+          "debut": "2026-07-01 00:00:00",
+          "fin": "2026-07-09 23:00:00",
+          "duree_j": 9.0,
+          "niveau_initial": 1.804,
+          "niveau_final": 2.2,
+          "pente_par_jour": 0.0448,
+          "R2_lineaire": 0.992,
+          "depart_apres_intervention": true,
+          "termine": true
+        },
+        {
+          "debut": "2026-07-10 00:00:00",
+          "fin": "2026-07-22 23:00:00",
+          "duree_j": 13.0,
+          "niveau_initial": 1.805,
+          "niveau_final": 2.383,
+          "pente_par_jour": 0.0452,
+          "R2_lineaire": 0.9963,
+          "depart_apres_intervention": true,
+          "termine": true
+        },
+        {
+          "debut": "2026-07-23 00:00:00",
+          "fin": "2026-07-30 23:00:00",
+          "duree_j": 8.0,
+          "niveau_initial": 1.803,
+          "niveau_final": 2.149,
+          "pente_par_jour": 0.0453,
+          "R2_lineaire": 0.9904,
+          "depart_apres_intervention": true,
+          "termine": false
+        }
+      ],
+      "pronostic": {
+        "valeur_actuelle": 2.149,
+        "pente_par_jour": 0.0453,
+        "jours_avant_seuil": 14.1,
+        "intervalle_90_jours": [
+          13.0,
+          15.2
+        ],
+        "date_prevue": "2026-08-14",
+        "date_au_plus_tot": "2026-08-12",
+        "date_au_plus_tard": "2026-08-15"
+      },
+      "marge": {
+        "duree_moyenne_cycle_j": 11.0,
+        "niveau_moyen_a_l_intervention": 2.292,
+        "duree_jusqu_au_seuil_j": 22.1
+      }
+    },
+    "BM_001": {
+      "indicateur": "Broyeur BM_001 - vibration",
+      "unite": "mm/s",
+      "seuil": 4.5,
+      "source_seuil": "ISO 10816-3, groupe 1, limite des zones B/C",
+      "interventions_detectees": [
+        {
+          "date": "2026-07-15 00:00:00",
+          "dans_gmao": false,
+          "ordres_de_travail": [],
+          "type": []
+        },
+        {
+          "date": "2026-07-28 00:00:00",
+          "dans_gmao": true,
+          "ordres_de_travail": [
+            "WO-2026-0820"
+          ],
+          "type": [
+            "Condition-Based"
+          ]
+        }
+      ],
+      "cycles": [
+        {
+          "debut": "2026-07-01 00:00:00",
+          "fin": "2026-07-14 23:00:00",
+          "duree_j": 14.0,
+          "niveau_initial": 2.611,
+          "niveau_final": 3.425,
+          "pente_par_jour": 0.0595,
+          "R2_lineaire": 0.9958,
+          "depart_apres_intervention": true,
+          "termine": true
+        },
+        {
+          "debut": "2026-07-15 00:00:00",
+          "fin": "2026-07-27 23:00:00",
+          "duree_j": 13.0,
+          "niveau_initial": 2.602,
+          "niveau_final": 3.372,
+          "pente_par_jour": 0.06,
+          "R2_lineaire": 0.996,
+          "depart_apres_intervention": true,
+          "termine": true
+        },
+        {
+          "debut": "2026-07-28 00:00:00",
+          "fin": "2026-07-30 23:00:00",
+          "duree_j": 3.0,
+          "niveau_initial": 2.603,
+          "niveau_final": 2.773,
+          "pente_par_jour": 0.0604,
+          "R2_lineaire": 0.9321,
+          "depart_apres_intervention": true,
+          "termine": false
+        }
+      ],
+      "pronostic": {
+        "valeur_actuelle": 2.773,
+        "pente_par_jour": 0.0604,
+        "jours_avant_seuil": 28.5,
+        "intervalle_90_jours": [
+          26.2,
+          30.8
+        ],
+        "date_prevue": "2026-08-28",
+        "date_au_plus_tot": "2026-08-26",
+        "date_au_plus_tard": "2026-08-30"
+      },
+      "marge": {
+        "duree_moyenne_cycle_j": 13.5,
+        "niveau_moyen_a_l_intervention": 3.398,
+        "duree_jusqu_au_seuil_j": 31.6
+      }
+    },
+    "CY_001": {
+      "indicateur": "Hydrocyclones CY_001 - usure des apex",
+      "unite": "%",
+      "seuil": 50.0,
+      "source_seuil": "niveau de remplacement observé le 19/07/2026",
+      "interventions_detectees": [
+        {
+          "date": "2026-07-19 00:00:00",
+          "dans_gmao": true,
+          "ordres_de_travail": [
+            "WO-2026-0719",
+            "WO-2026-0719",
+            "WO-2026-0719"
+          ],
+          "type": [
+            "Preventive",
+            "Preventive",
+            "Corrective"
+          ]
+        }
+      ],
+      "cycles": [
+        {
+          "debut": "2026-07-01 00:00:00",
+          "fin": "2026-07-18 23:00:00",
+          "duree_j": 18.0,
+          "niveau_initial": 5.308,
+          "niveau_final": 51.461,
+          "pente_par_jour": 2.5998,
+          "R2_lineaire": 1.0,
+          "depart_apres_intervention": true,
+          "termine": true
+        },
+        {
+          "debut": "2026-07-19 00:00:00",
+          "fin": "2026-07-30 23:00:00",
+          "duree_j": 12.0,
+          "niveau_initial": 5.325,
+          "niveau_final": 35.894,
+          "pente_par_jour": 2.6003,
+          "R2_lineaire": 1.0,
+          "depart_apres_intervention": true,
+          "termine": false
+        }
+      ],
+      "pronostic": {
+        "valeur_actuelle": 35.894,
+        "pente_par_jour": 2.6003,
+        "jours_avant_seuil": 5.3,
+        "intervalle_90_jours": [
+          4.9,
+          5.7
+        ],
+        "date_prevue": "2026-08-05",
+        "date_au_plus_tot": "2026-08-04",
+        "date_au_plus_tard": "2026-08-05"
+      },
+      "marge": {
+        "duree_moyenne_cycle_j": 18.0,
+        "niveau_moyen_a_l_intervention": 51.461,
+        "duree_jusqu_au_seuil_j": 17.2
+      }
+    }
+  },
+  "backtest": {
+    "cycles_evalues": 5,
+    "pronostics_evalues": 1543,
+    "erreur_moyenne_h": 6.4,
+    "erreur_relative_moyenne_pct": 6.0,
+    "par_horizon": {
+      "7 jours avant": {
+        "erreur_moyenne_h": 4.6,
+        "erreur_max_h": 25.2,
+        "n": 121
+      },
+      "3 jours avant": {
+        "erreur_moyenne_h": 2.4,
+        "erreur_max_h": 4.8,
+        "n": 120
+      },
+      "1 jour avant": {
+        "erreur_moyenne_h": 2.5,
+        "erreur_max_h": 4.7,
+        "n": 122
+      }
+    },
+    "erreur_relative_q90_pct": 8.0
+  }
+}
