@@ -12,8 +12,7 @@ from app.domains.knowledge_graph.service import KnowledgeGraphService
 from app.domains.knowledge_graph.rag_service import GraphRAGService
 from app.domains.auth.service import AuthService
 from app.domains.auth.schemas import UserResponse
-from app.domains.whatif.service import WhatIfService
-from app.domains.softsensor.service import SoftSensorService
+from app.domains.faults.service import FaultService
 from app.domains.prognosis.service import PrognosisService
 from app.core.security import decode_access_token
 from app.core.config import settings
@@ -27,19 +26,17 @@ _sim_manager: SimulationManager = None
 _kg_service: KnowledgeGraphService = None
 _rag_service: GraphRAGService = None
 _auth_service: AuthService = None
-_whatif_service: WhatIfService = None
 _historian: TelemetryHistorian = None
-_softsensor_service: SoftSensorService = None
+_fault_service: FaultService = None
 _prognosis_service: PrognosisService = None
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login", auto_error=True)
 
 def init_app_services():
-    global _csv_provider, _asset_service, _mqtt_service, _telemetry_service, _sim_manager, _kg_service, _rag_service, _auth_service, _whatif_service, _historian, _softsensor_service, _prognosis_service
+    global _csv_provider, _asset_service, _mqtt_service, _telemetry_service, _sim_manager, _kg_service, _rag_service, _auth_service, _historian, _fault_service, _prognosis_service
 
     _csv_provider = CSVDataProvider(settings.DATA_DIR)
-    _whatif_service = WhatIfService(_csv_provider)
-    _softsensor_service = SoftSensorService(_csv_provider)
+    _fault_service = FaultService(_csv_provider)
     _asset_service = AssetService(
         assets_file_path=settings.ASSETS_PATH,
         equipment_repo=EquipmentRepository(settings.EQUIPMENT_MASTER_PATH),
@@ -52,7 +49,7 @@ def init_app_services():
     _mqtt_service = MQTTSubscriberService(host=settings.MQTT_BROKER_HOST, port=settings.MQTT_BROKER_PORT, historian=_historian)
     _mqtt_service.start()
 
-    _telemetry_service = TelemetryService(_asset_service, _csv_provider, _mqtt_service)
+    _telemetry_service = TelemetryService(_asset_service, _csv_provider, _mqtt_service, fault_overlay=_fault_service.overlay)
     _sim_manager = SimulationManager(_csv_provider, mqtt_service=_mqtt_service)
     _rag_service = GraphRAGService(_kg_service, _telemetry_service, _asset_service)
     _auth_service = AuthService()
@@ -87,14 +84,11 @@ def get_kg_service() -> KnowledgeGraphService:
 def get_rag_service() -> GraphRAGService:
     return _rag_service
 
-def get_whatif_service() -> WhatIfService:
-    return _whatif_service
-
 def get_historian() -> TelemetryHistorian:
     return _historian
 
-def get_softsensor_service() -> SoftSensorService:
-    return _softsensor_service
+def get_fault_service() -> FaultService:
+    return _fault_service
 
 def get_prognosis_service() -> PrognosisService:
     return _prognosis_service

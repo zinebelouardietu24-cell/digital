@@ -166,15 +166,17 @@ class TelemetryHistorian:
         """Derniers messages de chaque tag, pour restaurer l'historique en mémoire au démarrage."""
         if not self.db_path.exists():
             return {}
-        with closing(self._connect()) as conn:
-            rows = conn.execute(
-                "SELECT tag_id, payload FROM ("
-                "  SELECT tag_id, payload, id, ROW_NUMBER() OVER (PARTITION BY tag_id ORDER BY id DESC) AS rn"
-                "  FROM telemetry WHERE tag_id IS NOT NULL"
-                ") WHERE rn <= ? ORDER BY id",
-                (per_tag,),
-            ).fetchall()
+        # Une requête par tag, servie par l'index (tag_id, received_at) : seules
+        # les dernières lignes de chaque tag sont lues, même si la base est grosse.
         history: Dict[str, List[Dict[str, Any]]] = {}
-        for tag_id, payload in rows:
-            history.setdefault(tag_id, []).append(json.loads(payload))
+        with closing(self._connect()) as conn:
+            tags = [row[0] for row in conn.execute(
+                "SELECT DISTINCT tag_id FROM telemetry WHERE tag_id IS NOT NULL"
+            ).fetchall()]
+            for tag_id in tags:
+                rows = conn.execute(
+                    "SELECT payload FROM telemetry WHERE tag_id = ? ORDER BY received_at DESC, id DESC LIMIT ?",
+                    (tag_id, per_tag),
+                ).fetchall()
+                history[tag_id] = [json.loads(payload) for (payload,) in reversed(rows)]
         return history

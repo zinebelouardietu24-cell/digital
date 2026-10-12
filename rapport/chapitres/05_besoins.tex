@@ -16,7 +16,7 @@ L'accès au système est authentifié. Trois profils sont définis dans l'applic
 \textbf{Acteur (rôle applicatif)} & \textbf{Rôle et attentes} \\
 \midrule
 Opérateur (\textit{Plant Operator}) & Surveille le circuit en temps réel ; a besoin d'une vue claire des débits, de l'état des équipements et des alarmes. \\
-Ingénieur procédé (\textit{Process Engineer}) & Analyse la performance et prépare les réglages : consulte les indicateurs dérivés, le graphe de connaissances, l'historique de maintenance, et teste des scénarios dans le simulateur What-If. \\
+Ingénieur procédé (\textit{Process Engineer}) & Analyse la performance et prépare les réglages : consulte les indicateurs dérivés, le graphe de connaissances, l'historique de maintenance et le diagnostic des défauts. \\
 Directeur d'usine (\textit{Plant Director}) & Vue d'ensemble de la fiabilité des actifs ; administre les accès. \\
 \bottomrule
 \end{tabularx}
@@ -38,9 +38,11 @@ BF4 & Synoptique & Afficher le schéma du circuit avec animation des flux ; ouvr
 BF5 & Graphe de connaissances & Explorer les liens entre équipements, lignes, capteurs, modes de défaillance et bons de travail ; filtrer et tracer un chemin de cause à effet. \\
 BF6 & Vue 3D & Représenter le circuit en 3D avec les valeurs clés de chaque équipement. \\
 BF7 & Maintenance & Afficher les indicateurs de fiabilité (MTBF, MTTR, criticité, échéances) et l'historique des interventions de chaque équipement. \\
-BF8 & Simulateur What-If & Faire varier les entrées du procédé et prédire l'effet sur 23 grandeurs aval, avec la fiabilité ($R^2$) de chaque prédiction. \\
+BF8 & Détection des défauts & Indiquer en continu s'il y a un défaut, sur quel équipement, de quel type, avec la mesure en cause et l'action conseillée. \\
 BF9 & Copilote IA & Répondre en langage naturel à des questions sur le circuit, en s'appuyant sur le graphe, la télémétrie et l'historique de maintenance. \\
 BF10 & Historique & Conserver toute la télémétrie reçue et permettre sa consultation et son export. \\
+BF11 & Démonstration & Injecter un défaut choisi dans les mesures pour vérifier que l'outil le détecte, puis revenir à la normale. \\
+BF12 & Pronostic & Estimer la durée de vie résiduelle de la pompe, du broyeur et des hydrocyclones, et la date de la prochaine intervention. \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -77,7 +79,7 @@ BNF7 & Interopérabilité & Protocoles standards : OPC UA~\cite{iec62541} côté
   \node[font=\small\bfseries,bleu] at (0,9.95) {Jumeau numérique};
   \foreach \y/\n/\t in {9.2/u1/S'authentifier, 8.2/u2/Superviser le synoptique, 7.2/u3/Consulter la fiche d'un équipement,
                         6.2/u4/Consulter la vue 3D, 5.2/u5/Explorer le graphe, 4.2/u6/Suivre la maintenance,
-                        3.2/u7/Simuler un réglage (What-If), 2.2/u8/Interroger le copilote IA,
+                        3.2/u7/Injecter un défaut (démonstration), 2.2/u8/Interroger le copilote IA,
                         1.2/u9/Piloter la simulation, 0.2/u10/Administrer les accès}
     \node[uc] (\n) at (0,\y) {\t};
   \newcommand{\bonhomme}[2]{
@@ -97,7 +99,7 @@ BNF7 & Interopérabilité & Protocoles standards : OPC UA~\cite{iec62541} côté
 \label{fig:usecase}
 \end{figure}
 
-L'ingénieur hérite des cas d'utilisation de l'opérateur et y ajoute l'analyse : simulation de réglages, copilote IA et pilotage de la relecture. Le directeur d'usine suit la fiabilité des actifs et gère les accès.
+L'ingénieur hérite des cas d'utilisation de l'opérateur et y ajoute l'analyse : injection de défauts pour la démonstration, copilote IA et pilotage de la relecture. Le directeur d'usine suit la fiabilité des actifs et gère les accès. Le diagnostic des défauts (BF8) est affiché sur le synoptique, et le pronostic (BF12) dans le suivi de la maintenance.
 
 \section{Conclusion}
 Les besoins sont désormais formalisés, et chacun est associé à un critère vérifiable. Le chapitre suivant présente l'architecture conçue pour y répondre.

@@ -1,4 +1,4 @@
-from typing import Dict, Any, List, Optional
+from typing import Callable, Dict, Any, List, Optional
 import pandas as pd
 from app.domains.assets.service import AssetService
 from app.core.interfaces import BaseDataProvider
@@ -17,10 +17,13 @@ class TelemetryService:
         asset_service: AssetService,
         data_provider: BaseDataProvider,
         mqtt_service: Optional[MQTTSubscriberService] = None,
+        fault_overlay: Optional[Callable[[Dict[str, float]], Dict[str, float]]] = None,
     ):
         self.asset_service = asset_service
         self.data_provider = data_provider
         self.mqtt_service = mqtt_service
+        # Applique un défaut injecté (démonstration) aux mesures affichées.
+        self.fault_overlay = fault_overlay
 
         self.col_to_tag: Dict[str, str] = {}
         self.tag_to_col: Dict[str, str] = {}
@@ -87,6 +90,9 @@ class TelemetryService:
                 live_metrics[col] = float(val)
             except (ValueError, TypeError):
                 live_metrics[col] = 0.0
+
+        if self.fault_overlay:
+            live_metrics = self.fault_overlay(live_metrics)
 
         incoming_streams: Dict[str, Dict[str, float]] = {}
         sources = meta.get("source")

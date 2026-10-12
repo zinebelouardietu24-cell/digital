@@ -18,7 +18,7 @@ Acquisition & KEPServerEX V6 (OPC UA)~\cite{kepware}, Node-RED et \texttt{node-r
 Transport & Eclipse Mosquitto 2.0 (MQTT)~\cite{mqtt5}, paho-mqtt \\
 Back-end & Python, FastAPI~\cite{fastapi}, pandas, PyJWT, bcrypt \\
 Stockage & SQLite~\cite{sqlite}, Neo4j 5~\cite{neo4j}, fichiers CSV \\
-Apprentissage & scikit-learn~\cite{sklearn}, XGBoost~\cite{chen2016}, joblib \\
+Analyse & pandas, NumPy (règles de diagnostic, pronostic), Matplotlib (évaluation) \\
 IA générative & API Google Gemini, Graph RAG~\cite{edge2024} \\
 Front-end & React 19~\cite{react}, Vite, React Three Fiber~\cite{r3f}, vis-network, Recharts \\
 Déploiement & Docker Compose~\cite{merkel2014} : 5 services (broker, Neo4j, backend, publieur, frontend) \\
@@ -39,12 +39,12 @@ L'accès passe par une page de connexion (figure~\ref{fig:login}). Le backend v�
 \end{figure}
 
 \subsection{Synoptique et graphe de connaissances}
-La vue principale juxtapose le schéma du circuit et le graphe de connaissances (figure~\ref{fig:home}). Une barre de pilotage permet de lancer la relecture et de choisir sa vitesse. Elle donne aussi accès aux panneaux de chaque source de données et au simulateur What-If.
+La vue principale juxtapose le schéma du circuit et le graphe de connaissances (figure~\ref{fig:home}). Une barre de pilotage permet de lancer la relecture et de choisir sa vitesse. Elle donne aussi accès aux panneaux de chaque source de données et au panneau d'injection de défauts. En haut à gauche, la carte de diagnostic indique en permanence l'état du circuit.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=\textwidth]{app_home}
-\caption{Vue double : synoptique du circuit (à gauche) et graphe de connaissances (à droite)}
+\includegraphics[width=\textwidth]{app_diagnostic_normal}
+\caption{Vue double : synoptique du circuit avec la carte de diagnostic (à gauche) et graphe de connaissances (à droite)}
 \label{fig:home}
 \end{figure}
 
@@ -80,19 +80,23 @@ Le graphe de connaissances compte \textbf{69 nœuds et 129 relations}, répartis
 \end{itemize}
 Des filtres isolent chaque famille de nœuds, et un mode de parcours trace le chemin d'une cause à ses effets.
 
-\subsection{Simulateur What-If}
-Le panneau What-If (figure~\ref{fig:whatif}) propose un curseur pour chacune des 8 entrées réglables. À chaque modification, il affiche pour chaque grandeur aval :
-\begin{itemize}
-  \item la valeur actuelle et la valeur prédite ;
-  \item l'écart entre les deux ;
-  \item le $R^2$ du modèle sur cette grandeur. Un badge orange signale une prédiction moins fiable, par exemple sur les pressions des cyclones.
-\end{itemize}
+\subsection{Diagnostic des défauts}
+La carte de diagnostic affiche l'état global du circuit (normal, alerte ou alarme). Pour chaque défaut actif, elle indique l'équipement, le type de défaut, la mesure en cause, la règle déclenchée et l'action conseillée. Sur le synoptique, l'équipement concerné est entouré d'un halo clignotant, orange pour une alerte et rouge pour une alarme (figure~\ref{fig:diagdefaut}).
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=\textwidth]{app_whatif}
-\caption{Simulateur What-If : entrées réglables et prédictions comparées à l'état actuel}
-\label{fig:whatif}
+\includegraphics[width=\textwidth]{app_diagnostic_defaut}
+\caption{Cavitation de la pompe injectée : la carte nomme le défaut, la mesure en cause et l'action, et la pompe est entourée d'un halo rouge}
+\label{fig:diagdefaut}
+\end{figure}
+
+Le panneau de démonstration (figure~\ref{fig:injection}) liste les neuf défauts que l'on peut injecter, avec leur effet sur les mesures. Un second onglet affiche la table des règles, avec la source de chaque seuil : l'opérateur peut ainsi comprendre pourquoi une alarme s'est déclenchée.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{app_injection}
+\caption{Panneau de démonstration : surcharge du broyeur injectée et détectée (halo rouge autour du broyeur)}
+\label{fig:injection}
 \end{figure}
 
 \subsection{Vue 3D}
@@ -113,7 +117,7 @@ La page de maintenance (figure~\ref{fig:maint}) résume l'état du parc : nombre
   \item l'état de l'équipement, avec son MTBF et son MTTR ;
   \item l'état de ses composants critiques.
 \end{itemize}
-Un lien ouvre l'historique complet des interventions (31 bons de travail au total).
+Un lien ouvre l'historique complet des interventions (31 bons de travail au total). En tête de page, un panneau de \textbf{pronostic} affiche pour la pompe, le broyeur et les hydrocyclones la durée de vie résiduelle, la date d'intervention prévue, la progression vers le seuil d'alarme et les interventions détectées dans les signaux, en signalant celles qui sont absentes de la GMAO (section~\ref{sec:pronostic}).
 
 \begin{figure}[H]
 \centering
@@ -141,50 +145,7 @@ Le copilote (figure~\ref{fig:copilot}) est une fenêtre flottante disponible sur
 
 \section{Évaluation}
 
-\input{chapitres/07b_xgboost}
-
-\subsection{Simulateur What-If}
-\paragraph{Un protocole d'évaluation biaisé.} Le backend évalue le simulateur sur 20\,\% des lignes tirées au hasard dans l'historique fusionné à la minute. Or, dans cette table, chaque mesure procédé (relevée toutes les 15 minutes) est recopiée sur 15 lignes consécutives (section~\ref{sec:asymetrie}). Un tirage aléatoire place donc dans le test des lignes presque identiques à des lignes d'entraînement : le modèle est interrogé sur ce qu'il a déjà vu. Pour mesurer la précision réelle, nous avons comparé trois protocoles, avec exactement les mêmes hyperparamètres que le backend (tableau~\ref{tab:whatif}, figure~\ref{fig:whatifprot}) :
-\begin{enumerate}
-  \item aléatoire, à la minute : le protocole initial ;
-  \item aléatoire, au pas de 15 minutes : une seule ligne par mesure procédé, ce qui supprime les doublons ;
-  \item \textbf{chronologique}, au pas de 15 minutes : le modèle apprend sur les 24 premiers jours et il est testé sur les 6 derniers (25--30 juillet). C'est le seul protocole qui reproduit l'usage réel : prévoir une période que le modèle n'a jamais vue.
-\end{enumerate}
-
-\begin{table}[H]
-\centering
-\caption{Précision du simulateur What-If selon le protocole d'évaluation (23 sorties)}
-\label{tab:whatif}
-\small
-\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}X ccc}
-\toprule
- & \textbf{Aléatoire, 1 min} & \textbf{Aléatoire, 15 min} & \textbf{Chronologique, 15 min} \\
-\midrule
-Débits, teneurs, P80 cyclones et indicateurs de circuit (14 sorties) & 0,90 -- 1,00 & 0,39 -- 1,00 & 0,33 -- 1,00 \\
-\quad dont P80 de la surverse & 0,991 & 0,937 & \textbf{0,956} \\
-\quad dont P80 de décharge du broyeur & 0,903 & 0,385 & \textbf{0,329} \\
-Signaux de santé et pressions (9 sorties) & 0,58 -- 0,78 & $-0{,}10$ -- 0,02 & $\mathbf{-0{,}06}$ \textbf{--} $\mathbf{0{,}02}$ \\
-\midrule
-$R^2$ médian (23 sorties) & 0,996 & 0,976 & \textbf{0,970} \\
-Sorties avec $R^2 > 0{,}9$ & 14 & 13 & \textbf{13} \\
-Sorties avec $R^2 < 0{,}5$ & 0 & 10 & \textbf{10} \\
-\bottomrule
-\end{tabularx}
-\end{table}
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.92\textwidth]{whatif_r2_protocoles}
-\caption{$R^2$ de chaque sortie du simulateur What-If : protocole initial (gris) et protocole chronologique (bleu)}
-\label{fig:whatifprot}
-\end{figure}
-
-\paragraph{Analyse.} Deux conclusions nettes se dégagent.
-\begin{enumerate}
-  \item \textbf{Le simulateur est fiable pour les grandeurs de procédé.} Les débits, les teneurs BPL, les P80 des cyclones, la charge circulante et le P80 de la surverse conservent un $R^2$ compris entre 0,956 et 0,999 sur une période future. Ces sorties sont gouvernées par les bilans matière du circuit, que les 8 entrées décrivent directement. Seul le P80 de décharge du broyeur reste mal prédit (0,33), faute d'information sur l'état de la charge broyante.
-  \item \textbf{Les signaux de santé ne sont pas prévisibles à partir des réglages.} Les scores de 0,58 à 0,78 du protocole initial disparaissent dès que les doublons sont supprimés : ils provenaient uniquement de la fuite d'information. C'est physiquement logique : la puissance, les températures de paliers, les vibrations et les pressions évoluent avec l'\textbf{usure} des équipements et le temps écoulé depuis la dernière intervention, pas avec la consigne de débit ou de vitesse choisie par l'opérateur.
-\end{enumerate}
-Cette évaluation conduit à une recommandation claire : le simulateur What-If doit être réservé aux 13 sorties de procédé fiables, et la prévision des signaux de santé doit être confiée à un modèle de dégradation, présenté dans la section suivante.
+\input{chapitres/07b_detection}
 
 \input{chapitres/07c_maintenance_predictive}
 
@@ -224,9 +185,11 @@ BF4 & Synoptique et fiches équipements & Réalisé \\
 BF5 & Graphe de connaissances & Réalisé \\
 BF6 & Vue 3D & Réalisé \\
 BF7 & Maintenance et fiabilité & Réalisé \\
-BF8 & Simulateur What-If & Réalisé \\
+BF8 & Détection et diagnostic des défauts & Réalisé \\
 BF9 & Copilote IA & Réalisé \\
 BF10 & Historique persistant & Réalisé \\
+BF11 & Injection de défauts (démonstration) & Réalisé \\
+BF12 & Pronostic de maintenance & Réalisé \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -235,13 +198,13 @@ BF10 & Historique persistant & Réalisé \\
 \label{sec:limites}
 Une évaluation honnête du prototype conduit à relever plusieurs limites :
 \begin{itemize}
-  \item \textbf{Données simulées.} Les deux sources proviennent de données simulées (qualité \texttt{SIM} dans les messages). Les performances des modèles devront être confirmées sur des mesures réelles, plus bruitées et plus lacunaires.
-  \item \textbf{Historique court.} Un mois de données seulement : la période de test du capteur virtuel couvre 4,5 jours, et le pronostic repose sur cinq cycles de dégradation complets. Les dérives lentes (saisons, changement de gisement) ne sont pas représentées.
-  \item \textbf{What-If limité aux grandeurs de procédé.} L'évaluation chronologique montre que le simulateur ne sait pas prédire les signaux de santé à partir des réglages. L'interface affiche encore ces sorties, avec le score issu du protocole aléatoire initial : elle devra être alignée sur les résultats de ce chapitre.
+  \item \textbf{Données simulées.} Les deux sources proviennent de données simulées (qualité \texttt{SIM} dans les messages). Les règles et le pronostic devront être confirmés sur des mesures réelles, plus bruitées et plus lacunaires, et sur de vrais défauts, qui s'installent souvent progressivement.
+  \item \textbf{Historique court.} Un mois de données seulement, avec un seul véritable défaut : la détection a dû être testée sur des défauts injectés, et le pronostic repose sur cinq cycles de dégradation complets. Les dérives lentes (saisons, changement de gisement) ne sont pas représentées.
+  \item \textbf{Règles limitées aux défauts prévus.} Un défaut d'un type nouveau n'est signalé que s'il fait sortir une mesure de sa plage normale. Plusieurs seuils, fixés à partir de la plage observée, devront être validés avec les ingénieurs du site.
   \item \textbf{Absence de boucle de retour automatique.} Au sens de Kritzinger \textit{et al.}~\cite{kritzinger2018}, le système est une ombre numérique : il n'agit pas sur le procédé.
-  \item \textbf{Pas de modèle physique.} Les modèles sont orientés données. Ils n'extrapolent pas en dehors des régimes observés dans l'historique.
+  \item \textbf{Pas de modèle physique.} Le diagnostic repose sur des seuils et le pronostic sur une tendance linéaire. Aucun modèle physique du broyage ne permet encore d'expliquer les dérives du procédé.
   \item \textbf{Dépendance à un service externe.} Le copilote privilégie une API de LLM hébergée, ce qui pose des questions de confidentialité en milieu industriel. Le moteur local de secours n'en atténue qu'en partie l'impact.
 \end{itemize}
 
 \section{Conclusion}
-Le prototype couvre l'ensemble des besoins fonctionnels identifiés, de l'acquisition OPC UA jusqu'à l'aide à la décision. Les trois briques d'IA ont été évaluées avec des protocoles qui reproduisent leur usage réel. Le capteur virtuel divise par 6,5 l'erreur commise avec une analyse de laboratoire toutes les 8~heures, et il accompagne chaque estimation d'un intervalle de confiance vérifié. Le simulateur What-If est fiable sur les 13 grandeurs de procédé qu'il doit prévoir. Le module de pronostic prédit la date d'intervention à quelques heures près, trois jours à l'avance, et il a révélé deux interventions absentes de la GMAO. L'historique survit désormais aux redémarrages, et les limites relevées tracent directement la feuille de route présentée en conclusion.
+Le prototype couvre l'ensemble des besoins fonctionnels identifiés, de l'acquisition OPC UA jusqu'à l'aide à la décision. L'outil de détection ne signale, sur un mois de fonctionnement, que les deux événements réels, sans aucune fausse alarme, et il reconnaît correctement les neuf défauts injectés lors de 2\,700 essais. Le module de pronostic prédit la date d'intervention à quelques heures près, trois jours à l'avance, et il a révélé deux interventions absentes de la GMAO. L'historique survit désormais aux redémarrages, et les limites relevées tracent directement la feuille de route présentée en conclusion.

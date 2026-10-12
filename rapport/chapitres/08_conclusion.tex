@@ -1,25 +1,25 @@
 \chapitresansnumero{Conclusion générale et perspectives}
 
-Ce projet de fin d'année visait à concevoir, au sein de JESA, une preuve de concept de jumeau numérique pour un circuit de broyage de phosphate. Trois difficultés avaient été identifiées : une qualité produit connue trop tard, une maintenance réactive et une information dispersée.
+Ce projet de fin d'année visait à concevoir, au sein de JESA, une preuve de concept de jumeau numérique pour un circuit de broyage de phosphate. Trois difficultés avaient été identifiées : des défauts difficiles à interpréter, une maintenance réactive et une information dispersée.
 
 La solution y répond par une architecture en cinq couches.
 \begin{itemize}
   \item \textbf{Acquisition.} Une chaîne industrielle KEPServerEX -- Node-RED (OPC UA) et une relecture des historiques publient 45 signaux sur un broker MQTT commun.
   \item \textbf{Traitement et stockage.} Un backend FastAPI organisé en domaines fusionne des flux acquis à des rythmes différents, calcule les bilans de matière et enregistre toute la télémétrie dans un historien SQLite. L'historique survit ainsi à un arrêt du poste.
   \item \textbf{Information métier.} Un graphe de connaissances de 69 nœuds relie équipements, capteurs, lignes, modes de défaillance et interventions de maintenance.
-  \item \textbf{Intelligence artificielle.} Le simulateur What-If anticipe l'effet d'un réglage sur 23 grandeurs aval, et le copilote Graph RAG répond en langage naturel, même hors connexion. Le capteur virtuel XGBoost estime le P80 avec une erreur moyenne de 0,66~µm sur une période de test qu'il n'avait jamais vue : c'est 6,5 fois moins qu'avec une analyse de laboratoire toutes les 8~heures, et chaque estimation est assortie d'un intervalle de confiance à 90\,\%. Enfin, un module de pronostic prédit la date de la prochaine intervention sur la pompe, le broyeur et les hydrocyclones, à quelques heures près trois jours à l'avance.
+  \item \textbf{Intelligence artificielle.} Un outil de détection et de diagnostic, fondé sur dix règles explicables, indique s'il y a un défaut, sur quel équipement, de quel type et quoi faire. Il ne signale sur un mois que les deux événements réels, sans fausse alarme, et reconnaît les neuf défauts injectés lors de 2\,700 essais. Le copilote Graph RAG répond en langage naturel, même hors connexion. Enfin, un module de pronostic prédit la date de la prochaine intervention sur la pompe, le broyeur et les hydrocyclones, à quelques heures près trois jours à l'avance.
 \end{itemize}
 
-Sur le plan personnel, ce stage m'a permis de confronter ma formation d'ingénieure à la réalité d'un procédé industriel, de l'automate jusqu'au tableau de bord. J'ai découvert que la valeur d'une donnée dépend autant de sa compréhension physique (ce que représente un P80, pourquoi un palier chauffe) que de la rigueur avec laquelle on l'évalue. Un découpage chronologique ou aléatoire peut à lui seul changer la conclusion que l'on tire d'un modèle.
+Sur le plan personnel, ce stage m'a permis de confronter ma formation d'ingénieure à la réalité d'un procédé industriel, de l'automate jusqu'au tableau de bord. J'ai découvert que la valeur d'une donnée dépend avant tout de sa compréhension physique : savoir pourquoi un palier chauffe ou pourquoi une pompe cavite permet d'écrire une règle simple, juste et compréhensible par tous. J'ai aussi appris qu'un outil d'alarme se juge autant à ses fausses alarmes qu'aux défauts qu'il détecte.
 
 \section*{Perspectives}
 Les limites relevées à la section~\ref{sec:limites} dessinent la suite du travail :
 \begin{itemize}
-  \item \textbf{Pronostic et intervalles dans l'interface.} Afficher dans le tableau de bord la durée de vie résiduelle de chaque équipement et l'intervalle de confiance du P80 estimé, puis publier ces valeurs comme des tags MQTT à part entière.
-  \item \textbf{Simulateur What-If recentré.} Réentraîner le simulateur avec le protocole chronologique et le limiter aux 13 grandeurs de procédé qu'il prédit de façon fiable.
-  \item \textbf{Validation sur site réel.} Connecter Node-RED aux automates d'une installation OCP et entraîner les modèles sur l'historique réel accumulé par l'historien.
-  \item \textbf{Surveillance des modèles.} Détecter la dérive du procédé (dureté du minerai, usure) et déclencher le réentraînement des modèles~\cite{kadlec2009}.
+  \item \textbf{Alertes et intégration.} Publier l'état du diagnostic et la durée de vie résiduelle comme des tags MQTT à part entière, déclencher des alertes avant le seuil, et créer automatiquement dans la GMAO les interventions détectées dans les signaux.
+  \item \textbf{Règles validées et enrichies.} Faire valider les seuils par les ingénieurs du site, puis compléter les règles à partir des défauts réellement rencontrés et consignés dans la GMAO.
+  \item \textbf{Validation sur site réel.} Connecter Node-RED aux automates d'une installation OCP, puis ajuster les seuils et le pronostic sur l'historique réel accumulé par l'historien.
+  \item \textbf{Défauts imprévus.} Compléter les règles par une détection simple des écarts au comportement habituel, pour signaler aussi les défauts qu'aucune règle ne prévoit.
   \item \textbf{Pronostic non linéaire.} Sur données réelles, remplacer le modèle de dégradation linéaire par un modèle capable de représenter l'accélération de l'usure en fin de vie.
   \item \textbf{Vers un vrai jumeau.} Proposer des consignes validées par l'opérateur, puis, à terme, fermer la boucle de régulation~\cite{kritzinger2018}.
-  \item \textbf{Modèles hybrides.} Coupler les modèles orientés données à des modèles physiques du broyage et de la classification~\cite{wills2016}.
+  \item \textbf{Modèles hybrides.} Coupler les règles et le pronostic à des modèles physiques du broyage et de la classification~\cite{wills2016}, pour expliquer les dérives du procédé et pas seulement les détecter.
 \end{itemize}

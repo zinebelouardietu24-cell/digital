@@ -25,10 +25,10 @@ Le tableau~\ref{tab:5d} rattache chaque élément de l'architecture aux cinq dim
 \textbf{Dimension} & \textbf{Éléments du prototype} \\
 \midrule
 Entité physique & Circuit de broyage représenté par KEPServerEX (automate simulé) et par les historiques du procédé \\
-Entité virtuelle & Bilans de matière, graphe de connaissances, modèles What-If et XGBoost, modèle 3D \\
+Entité virtuelle & Bilans de matière, graphe de connaissances, règles de diagnostic, modèle de dégradation, modèle 3D \\
 Données & Historien SQLite, jeux de données CSV, registre des tags, Neo4j \\
 Connexions & OPC UA, MQTT, API REST \\
-Services & Synoptique, fiches équipements, maintenance, simulation What-If, copilote IA \\
+Services & Synoptique, diagnostic des défauts, fiches équipements, maintenance et pronostic, copilote IA \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -86,7 +86,8 @@ Le \textbf{backend}, écrit en Python avec FastAPI~\cite{fastapi}, suit une arch
   \item \texttt{simulation} : machine à états de la relecture (démarrage, pause, arrêt, vitesse) ;
   \item \texttt{assets} : fiches des équipements et historique des interventions ;
   \item \texttt{knowledge\_graph} : construction du graphe, accès à Neo4j et copilote Graph RAG ;
-  \item \texttt{whatif} : simulateur What-If ;
+  \item \texttt{faults} : détection et diagnostic des défauts, injection de défauts ;
+  \item \texttt{prognosis} : pronostic de durée de vie résiduelle ;
   \item \texttt{auth} : authentification et rôles.
 \end{itemize}
 
@@ -106,7 +107,6 @@ Aucune base ne répond seule à tous les besoins. Le projet associe donc plusieu
 Historien SQLite~\cite{sqlite} & Chaque message MQTT reçu & Base sans serveur, contenue dans un seul fichier : rien à installer, sauvegarde par simple copie. Le mode WAL autorise les lectures pendant l'écriture. \\
 Neo4j~\cite{neo4j} & Équipements, lignes, capteurs, modes de défaillance, bons de travail & Les questions de topologie («~qu'y a-t-il en aval de ?~») sont des parcours de graphe, coûteux en jointures dans une base relationnelle. Un graphe en mémoire prend le relais si Neo4j est indisponible. \\
 Fichiers CSV & Historiques du procédé et de la santé, fiches équipements, interventions, registre des tags & Source de vérité unique (dossier \texttt{data/}), partagée par le publieur, le backend et les modèles. \\
-Fichiers joblib & Modèles entraînés & Évite de réentraîner à chaque démarrage ; le modèle est invalidé si les données ou sa version changent. \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -122,7 +122,7 @@ Dans une première version, le backend ne gardait que les 100 dernières valeurs
 \end{itemize}
 Deux index accélèrent les recherches par tag et par période. Pour ne jamais ralentir la réception MQTT, le rappel de réception se contente de placer le message dans une file d'attente, et un fil d'exécution dédié l'écrit ensuite sur le disque par lots. À l'arrêt, la file est vidée avant la fermeture. Au démarrage, les 100 derniers messages de chaque tag sont rechargés en mémoire, si bien que les courbes reprennent là où elles s'étaient arrêtées. Trois routes de l'API exposent l'historique : \texttt{/historian/stats}, \texttt{/historian/query} et \texttt{/historian/export.csv}.
 
-\section{Couche 4 : intelligence artificielle}
+\section{Couche 4 : analyse et aide à la décision}
 
 \begin{figure}[H]
 \centering
@@ -130,29 +130,49 @@ Deux index accélèrent les recherches par tag et par période. Pour ne jamais r
   e/.style={boite,text width=3.5cm,font=\scriptsize},
   m/.style={boite,draw=rouge,fill=rougeclair,text width=3cm,font=\scriptsize},
   s/.style={boite,draw=vert,fill=vertclair,text width=3.5cm,font=\scriptsize}]
-  \node[e] (e1) at (0,0) {\textbf{8 entrées réglables}\\alimentation, eau, vitesses, consigne de niveau};
-  \node[m] (m1) at (4.8,0) {\textbf{Forêt aléatoire}\\multi-sorties};
-  \node[s] (s1) at (9.6,0) {\textbf{23 grandeurs aval}\\prédites + $R^2$ par sortie};
-  \node[e] (e2) at (0,-2) {\textbf{Question en langage naturel}\\+ graphe, télémétrie, interventions};
-  \node[m] (m2) at (4.8,-2) {\textbf{Graph RAG}\\LLM Gemini ou moteur local};
-  \node[s] (s2) at (9.6,-2) {\textbf{Réponse argumentée}\\diagnostic, recommandation};
-  \node[e] (e3) at (0,-4) {\textbf{Mesures en ligne}\\débits, densités, santé};
-  \node[m] (m3) at (4.8,-4) {\textbf{XGBoost}\\régression};
-  \node[s] (s3) at (9.6,-4) {\textbf{P80 estimé}\\en continu};
+  \node[e] (e1) at (0,0) {\textbf{Mesures des équipements}\\médiane des 10 dernières minutes};
+  \node[m] (m1) at (4.8,0) {\textbf{10 règles}\\SI \dots{} ALORS \dots{}, hystérésis};
+  \node[s] (s1) at (9.6,0) {\textbf{Défaut détecté}\\équipement, type, niveau, action};
+  \node[e] (e2) at (0,-2) {\textbf{Signaux de santé}\\vibrations, usure des apex};
+  \node[m] (m2) at (4.8,-2) {\textbf{Modèle de dégradation}\\détection des interventions};
+  \node[s] (s2) at (9.6,-2) {\textbf{Durée de vie résiduelle}\\date de la prochaine intervention};
+  \node[e] (e3) at (0,-4) {\textbf{Question en langage naturel}\\+ graphe, télémétrie, interventions};
+  \node[m] (m3) at (4.8,-4) {\textbf{Graph RAG}\\LLM Gemini ou moteur local};
+  \node[s] (s3) at (9.6,-4) {\textbf{Réponse argumentée}\\diagnostic, recommandation};
   \foreach \i in {1,2,3} {\draw[fleche] (e\i)--(m\i); \draw[fleche] (m\i)--(s\i);}
 \end{tikzpicture}
-\caption{Entrées, modèles et sorties de la couche d'intelligence artificielle}
+\caption{Entrées, traitements et sorties de la couche d'analyse}
 \label{fig:ia}
 \end{figure}
 
-\paragraph{Simulateur What-If.} Une forêt aléatoire multi-sorties~\cite{breiman2001} (scikit-learn~\cite{sklearn} ; 100 arbres, profondeur maximale 22) prédit 23 grandeurs aval du circuit à partir de 8 entrées qu'un opérateur peut réellement régler en amont :
-\begin{itemize}
-  \item débit, teneur BPL, P80 et fraction solide de l'alimentation ;
-  \item débit d'eau d'appoint ;
-  \item vitesse de la pompe et vitesse du broyeur ;
-  \item consigne de niveau du bac.
-\end{itemize}
-Ces 23 grandeurs couvrent les cyclones, le broyage, la qualité, la santé du broyeur et celle de la pompe. Le modèle est entraîné sur l'historique fusionné, puis mis en cache sur disque. Pour chaque sortie, l'interface affiche la valeur actuelle, la valeur prédite, l'écart entre les deux et le $R^2$ du modèle, afin que l'utilisateur sache quelle confiance accorder à chaque prédiction.
+\paragraph{Détection et diagnostic des défauts.} Le domaine \texttt{faults} contient dix règles, rédigées comme le raisonnement d'un technicien (tableau~\ref{tab:regles}). Chaque règle porte sur un équipement et un type de défaut, compare une ou plusieurs mesures à des seuils, et précise la source de ces seuils ainsi que l'action conseillée. Deux niveaux sont distingués : l'\textbf{alerte}, qui appelle une surveillance ou une intervention planifiée, et l'\textbf{alarme}, qui appelle une action immédiate.
+
+\begin{table}[H]
+\centering
+\caption{Règles de détection et de diagnostic des défauts}
+\label{tab:regles}
+\scriptsize
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{2.6cm} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}p{3.2cm} >{\raggedright\arraybackslash}p{3.4cm}}
+\toprule
+\textbf{Défaut} & \textbf{SI \dots{} (alerte · alarme)} & \textbf{Source du seuil} & \textbf{ALORS \dots{}} \\
+\midrule
+Pompe : vibration excessive & vibration $\geq 2{,}8$ · $\geq 4{,}5$~mm/s & ISO 10816-3, groupe 2 & Inspecter la roue et le revêtement \\
+Pompe : surchauffe du palier & température $\geq 60$ · $\geq 70$~°C & Plage normale : 46--54~°C & Vérifier lubrification et alignement \\
+Pompe : cavitation & niveau du bac $< 38$\,\% ET pression $< 250$~kPa ET courant $< 100$~A & Règle à trois symptômes & Remonter le niveau du bac \\
+Bac : niveau trop haut & niveau $\geq 75$ · $\geq 85$\,\% & Plage normale : 42--69\,\% & Accélérer la pompe ou réduire l'alimentation \\
+Broyeur : vibration excessive & vibration $\geq 4{,}5$ · $\geq 7{,}1$~mm/s & ISO 10816-3, groupe 1 & Contrôler paliers et engrènement \\
+Broyeur : surchauffe du palier & température $\geq 68$ · $\geq 75$~°C & GMAO (alerte à 68~°C) & Vérifier filtre et niveau d'huile \\
+Broyeur : surcharge & puissance $> 2\,180$ ET courant $> 360$~A · $> 2\,300$ ET $> 380$~A & Plage normale : $\leq 2\,130$~kW & Réduire l'alimentation \\
+Cyclones : usure des apex & usure $\geq 45$ · $\geq 50$\,\% & GMAO (remplacement à 50\,\%) & Remplacer les apex \\
+Cyclones : engorgement & pression $> 330$ ET $\Delta P > 110$ · $> 350$ ET $> 115$~kPa & Plage normale : $\leq 320$ et $\leq 107$~kPa & Déboucher l'apex \\
+Cyclones : cyclone arrêté & moins de 4 · moins de 3 cyclones en service & Configuration nominale & Remettre le cyclone en service \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Deux précautions évitent les fausses alarmes, conformément à la norme ISA-18.2~\cite{isa182}. Les règles s'appliquent d'abord à la \textbf{médiane des 10 dernières minutes} de chaque mesure, et non à la dernière valeur seule, ce qui filtre le bruit. Une \textbf{hystérésis} s'y ajoute : une alerte active ne disparaît que si la mesure redescend d'une bande morte (par exemple 3\,\% pour l'usure des apex) sous son seuil. Chaque nouveau défaut est inscrit dans un journal, avec l'heure de simulation.
+
+Pour la démonstration, un défaut peut être \textbf{injecté} : ses effets sont appliqués aux mesures avant le diagnostic et à celles affichées dans les fiches des équipements. Par exemple, la cavitation fixe le niveau du bac à 30\,\% et réduit la pression et le courant de la pompe. Un bouton rend ensuite au circuit ses mesures réelles.
 
 \paragraph{Copilote Graph RAG.} Le copilote suit le principe du Graph RAG~\cite{edge2024,lewis2020} en quatre étapes :
 \begin{enumerate}
@@ -163,7 +183,7 @@ Ces 23 grandeurs couvrent les cyclones, le broyage, la qualité, la santé du br
 \end{enumerate}
 Si l'API ne répond pas, un \textbf{moteur local déterministe} rédige la réponse à partir du même contexte. Le copilote reste ainsi utilisable sans connexion.
 
-\paragraph{Capteur virtuel XGBoost.} Un modèle XGBoost~\cite{chen2016} estime le P80 de la surverse à partir des seules mesures disponibles en ligne. Il a été développé et évalué hors ligne ; son protocole et ses résultats font l'objet de la section~\ref{sec:xgboost}.
+\paragraph{Pronostic de maintenance.} Un service du backend suit un indicateur d'usure par équipement critique : la vibration de la pompe, la vibration du broyeur et l'indice d'usure des apex des hydrocyclones. À chaque heure de simulation, il détecte les interventions passées (chutes brutales de l'indicateur), ajuste un modèle de dégradation linéaire sur le cycle en cours et en déduit la durée de vie résiduelle jusqu'au seuil d'alarme. Le résultat est affiché en tête de la page de maintenance. La méthode et sa validation sont détaillées à la section~\ref{sec:pronostic}.
 
 \section{Couche 5 : interface utilisateur}
 L'interface est une \gls{spa} développée avec React 19~\cite{react} et Vite. Le graphe de connaissances est rendu avec vis-network, la vue 3D avec React Three Fiber~\cite{r3f} (Three.js), et les graphiques avec Recharts. La charte graphique applique les principes de la norme ISA-101~\cite{isa101} : un fond sombre et neutre, et des couleurs vives réservées aux situations anormales, afin que l'attention de l'opérateur se porte sur l'essentiel.
@@ -208,7 +228,7 @@ Circuit & \texttt{CIRCUIT.KPI.\{CirculatingLoad, ReductionRatio\}} & Charge circ
 
 \subsection{Asymétrie temporelle des flux}
 \label{sec:asymetrie}
-Les deux domaines n'arrivent pas au même rythme : il y a une mesure de procédé pour quinze mesures de santé. Or le calcul d'un bilan de matière, comme l'apprentissage d'un modèle, exige des valeurs cohérentes dans le temps. Le fournisseur de données du backend fusionne donc les deux flux par une \textbf{jointure temporelle} (\textit{as-of join}) : chaque mesure de santé est associée à la dernière mesure de procédé connue à cet instant (figure~\ref{fig:asym}).
+Les deux domaines n'arrivent pas au même rythme : il y a une mesure de procédé pour quinze mesures de santé. Or le calcul d'un bilan de matière, comme l'application d'une règle qui combine plusieurs mesures, exige des valeurs cohérentes dans le temps. Le fournisseur de données du backend fusionne donc les deux flux par une \textbf{jointure temporelle} (\textit{as-of join}) : chaque mesure de santé est associée à la dernière mesure de procédé connue à cet instant (figure~\ref{fig:asym}).
 
 \begin{figure}[H]
 \centering

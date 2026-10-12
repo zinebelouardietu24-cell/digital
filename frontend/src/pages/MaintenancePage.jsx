@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import Flowsheet from "./Flowsheet";
 import PrognosisPanel from "../components/PrognosisPanel";
+import FaultLogPanel from "../components/FaultLogPanel";
 
 import { API_BASE as API } from "../config/api.config.js";
 
@@ -649,6 +650,8 @@ const ALL_STATIC_MAINTENANCE_LOGS = [
       </div>
 
       <PrognosisPanel />
+
+      <FaultLogPanel />
 
       {/* Equipment Quick Selector Pills */}
       <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>

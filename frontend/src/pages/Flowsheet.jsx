@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Play, Pause, RotateCcw, Square, ChevronLeft, ChevronRight, SlidersHorizontal } from "lucide-react";
-import { getHistoricalTags, getNoderedTags } from "../api/simulationApi";
-import WhatIfPanel from "../components/WhatIfPanel";
-import SoftSensorCard from "../components/SoftSensorCard";
+import { getHistoricalTags, getNoderedTags, getFaultStatus } from "../api/simulationApi";
+import FaultCard, { LEVEL_STYLE } from "../components/FaultCard";
+import FaultInjectionPanel from "../components/FaultInjectionPanel";
 
 /**
  * Centralized Layout Grid Configuration (1120 x 580 canvas)
@@ -770,7 +770,27 @@ export default function Flowsheet({
   const [historicalTags, setHistoricalTags] = useState({});
   const [showNoderedDrawer, setShowNoderedDrawer] = useState(false);
   const [noderedTags, setNoderedTags] = useState({});
-  const [showWhatIfDrawer, setShowWhatIfDrawer] = useState(false);
+  const [showFaultDrawer, setShowFaultDrawer] = useState(false);
+  const [faultStatus, setFaultStatus] = useState(null);
+
+  // Diagnostic des défauts, partagé par la carte, les halos et le tiroir.
+  useEffect(() => {
+    let cancelled = false;
+    const fetchFaults = async () => {
+      try {
+        const data = await getFaultStatus();
+        if (!cancelled) setFaultStatus(data);
+      } catch {
+        if (!cancelled) setFaultStatus(null);
+      }
+    };
+    fetchFaults();
+    const timer = setInterval(fetchFaults, 1500);
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+    };
+  }, []);
 
   // "CY_001" (flowsheet tag) -> "CY001" (MQTT tag_id prefix, no underscore)
   const equipmentPrefix = selected ? selected.replace(/_/g, "").split(".")[0] : null;
@@ -909,8 +929,8 @@ export default function Flowsheet({
         </div>
       </div>
 
-      {/* Capteur virtuel XGBoost du P80 + compteur de l'historien */}
-      {!hideControls && <SoftSensorCard />}
+      {/* Diagnostic des défauts + compteur de l'historien */}
+      {!hideControls && <FaultCard data={faultStatus} />}
 
       {/* Cool Futuristic HUD Replay Drawer (Expanding Horizontally to the Left) */}
       {!hideControls && (
@@ -1147,23 +1167,23 @@ export default function Flowsheet({
                 </button>
 
                 <button
-                  onClick={() => setShowWhatIfDrawer((v) => !v)}
+                  onClick={() => setShowFaultDrawer((v) => !v)}
                   style={{
-                    background: showWhatIfDrawer ? "#10b981" : "#162032",
-                    border: "1px solid #10b981",
+                    background: showFaultDrawer ? "#a78bfa" : "#162032",
+                    border: "1px solid #a78bfa",
                     borderRadius: "5px",
                     padding: "0.2rem 0.5rem",
                     display: "flex",
                     alignItems: "center",
                     gap: "0.3rem",
                     fontSize: "0.68rem",
-                    color: showWhatIfDrawer ? "#0f172a" : "#6ee7b7",
+                    color: showFaultDrawer ? "#0f172a" : "#c4b5fd",
                     fontWeight: "800",
                     cursor: "pointer",
                   }}
-                  title="Simulateur what-if base sur un modele ML entraine sur l'historique reel du circuit"
+                  title="Injecter un defaut pour la demonstration et consulter les regles de detection"
                 >
-                  🧪 What-If (ML)
+                  ⚡ Injecter un défaut
                 </button>
               </div>
             </div>
@@ -1300,7 +1320,11 @@ export default function Flowsheet({
         </div>
       )}
 
-      <WhatIfPanel isOpen={showWhatIfDrawer} onClose={() => setShowWhatIfDrawer(false)} />
+      <FaultInjectionPanel
+        isOpen={showFaultDrawer}
+        onClose={() => setShowFaultDrawer(false)}
+        injected={faultStatus ? faultStatus.injected : null}
+      />
 
       {/* Main Process Flow Diagram SVG */}
       <svg
@@ -1445,6 +1469,25 @@ export default function Flowsheet({
           isStepActive={simStep >= 4}
           liveReadout={noderedTags["BM001.HEALTH.PowerDraw"]}
         />
+
+        {/* 3b. HALO DES ÉQUIPEMENTS EN DÉFAUT */}
+        {faultStatus &&
+          Object.entries(faultStatus.equipment_status || {}).map(([eq, level]) => {
+            const pos = LAYOUT.equipment[eq];
+            if (!pos || level === "normal") return null;
+            const color = LEVEL_STYLE[level].color;
+            return (
+              <g key={`fault-${eq}`} style={{ pointerEvents: "none" }}>
+                <circle cx={pos.x} cy={pos.y} r="78" fill="none" stroke={color} strokeWidth="3" opacity="0.9">
+                  <animate attributeName="r" values="70;84;70" dur="1.6s" repeatCount="indefinite" />
+                  <animate attributeName="opacity" values="0.9;0.3;0.9" dur="1.6s" repeatCount="indefinite" />
+                </circle>
+                <text x={pos.x} y={pos.y - 92} textAnchor="middle" fill={color} fontSize="14" fontWeight="800">
+                  ⚠ {LEVEL_STYLE[level].label}
+                </text>
+              </g>
+            );
+          })}
 
         {/* 4. PIPE TAG LABELS LAYER */}
         {Object.entries(LAYOUT.pipes).map(([key, p]) => (

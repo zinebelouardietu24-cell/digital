@@ -12,5 +12,4 @@ frontend/dist/
 
 # Artefacts lourds ou générés
 data/models/*
-!data/models/xgb_soft_sensor_p80.joblib
 data/historian/

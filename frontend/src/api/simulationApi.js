@@ -110,29 +110,57 @@ export async function getNoderedTags() {
   return res.json();
 }
 
-export async function getWhatIfConfig() {
-  const res = await fetch(`${API_BASE}/api/whatif/config`, {
+/** Défauts actifs à l'instant rejoué (état global, liste, état par équipement). */
+export async function getFaultStatus() {
+  const res = await fetch(`${API_BASE}/api/v1/faults/status`, {
     headers: getAuthHeaders(),
   });
-  if (!res.ok) throw new Error("Failed to fetch what-if config");
+  if (!res.ok) throw new Error("Failed to fetch fault status");
   return res.json();
 }
 
-export async function predictWhatIf(inputs) {
-  const res = await fetch(`${API_BASE}/api/whatif/predict`, {
-    method: "POST",
-    headers: getAuthHeaders({ "Content-Type": "application/json" }),
-    body: JSON.stringify(inputs),
-  });
-  if (!res.ok) throw new Error("Failed to run what-if prediction");
-  return res.json();
-}
-/** P80 estimé par le capteur virtuel XGBoost à l'instant rejoué, avec l'historique récent. */
-export async function getSoftSensorP80(history = 24) {
-  const res = await fetch(`${API_BASE}/api/v1/softsensor/p80?history=${history}`, {
+/** Journal des défauts apparus depuis le démarrage, le plus récent en premier. */
+export async function getFaultEvents() {
+  const res = await fetch(`${API_BASE}/api/v1/faults/events`, {
     headers: getAuthHeaders(),
   });
-  if (!res.ok) throw new Error("Failed to fetch soft sensor estimate");
+  if (!res.ok) throw new Error("Failed to fetch fault events");
+  return res.json();
+}
+
+/** Règles de détection (seuils, sources, actions conseillées). */
+export async function getFaultRules() {
+  const res = await fetch(`${API_BASE}/api/v1/faults/rules`, {
+    headers: getAuthHeaders(),
+  });
+  if (!res.ok) throw new Error("Failed to fetch fault rules");
+  return res.json();
+}
+
+/** Défauts que l'on peut injecter pour une démonstration. */
+export async function getFaultScenarios() {
+  const res = await fetch(`${API_BASE}/api/v1/faults/scenarios`, {
+    headers: getAuthHeaders(),
+  });
+  if (!res.ok) throw new Error("Failed to fetch fault scenarios");
+  return res.json();
+}
+
+export async function injectFault(scenarioId) {
+  const res = await fetch(`${API_BASE}/api/v1/faults/inject/${scenarioId}`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+  });
+  if (!res.ok) throw new Error("Failed to inject fault");
+  return res.json();
+}
+
+export async function clearFault() {
+  const res = await fetch(`${API_BASE}/api/v1/faults/clear`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+  });
+  if (!res.ok) throw new Error("Failed to clear fault");
   return res.json();
 }
 

@@ -1,0 +1,106 @@
+{
+  "periode": [
+    "2026-07-01 00:00:00",
+    "2026-07-30 23:59:00"
+  ],
+  "minutes": 43200,
+  "nb_regles": 10,
+  "fonctionnement_normal": {
+    "episodes_par_regle": {
+      "CY_APEX": [
+        {
+          "debut": "2026-07-16 06:04:00",
+          "fin": "2026-07-19 00:03:00",
+          "duree_min": 3960,
+          "niveau_max": "alarme"
+        }
+      ],
+      "CY_ARRET": [
+        {
+          "debut": "2026-07-17 16:48:00",
+          "fin": "2026-07-17 19:45:00",
+          "duree_min": 178,
+          "niveau_max": "alerte"
+        }
+      ]
+    },
+    "minutes_avec_au_moins_un_defaut": 3960
+  },
+  "defauts_injectes": {
+    "instants_testes": 300,
+    "par_scenario": {
+      "pompe_balourd": {
+        "nom": "Balourd de la roue de pompe",
+        "attendu": [
+          "SP_VIB"
+        ],
+        "taux_detection_pct": 100.0,
+        "taux_bon_diagnostic_pct": 100.0
+      },
+      "pompe_cavitation": {
+        "nom": "Cavitation de la pompe",
+        "attendu": [
+          "SP_CAV"
+        ],
+        "taux_detection_pct": 100.0,
+        "taux_bon_diagnostic_pct": 100.0
+      },
+      "pompe_palier": {
+        "nom": "Surchauffe du palier de pompe",
+        "attendu": [
+          "SP_TEMP"
+        ],
+        "taux_detection_pct": 100.0,
+        "taux_bon_diagnostic_pct": 100.0
+      },
+      "bac_debordement": {
+        "nom": "Niveau du bac trop haut",
+        "attendu": [
+          "PB_HAUT"
+        ],
+        "taux_detection_pct": 100.0,
+        "taux_bon_diagnostic_pct": 100.0
+      },
+      "broyeur_palier": {
+        "nom": "Surchauffe du palier du broyeur",
+        "attendu": [
+          "BM_TEMP"
+        ],
+        "taux_detection_pct": 100.0,
+        "taux_bon_diagnostic_pct": 100.0
+      },
+      "broyeur_surcharge": {
+        "nom": "Surcharge du broyeur",
+        "attendu": [
+          "BM_SURCH"
+        ],
+        "taux_detection_pct": 100.0,
+        "taux_bon_diagnostic_pct": 100.0
+      },
+      "broyeur_vibration": {
+        "nom": "Vibration du broyeur",
+        "attendu": [
+          "BM_VIB"
+        ],
+        "taux_detection_pct": 100.0,
+        "taux_bon_diagnostic_pct": 100.0
+      },
+      "cyclone_bouche": {
+        "nom": "Apex de cyclone bouché",
+        "attendu": [
+          "CY_BOUCHE"
+        ],
+        "taux_detection_pct": 100.0,
+        "taux_bon_diagnostic_pct": 100.0
+      },
+      "cyclone_arret": {
+        "nom": "Cyclone hors service",
+        "attendu": [
+          "CY_ARRET"
+        ],
+        "taux_detection_pct": 100.0,
+        "taux_bon_diagnostic_pct": 100.0
+      }
+    }
+  }
+}
